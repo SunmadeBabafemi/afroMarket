@@ -30,7 +30,7 @@ module.exports = {
     host: secrets.host,
     port: secrets.dbPort,
     dialect: "mysql",
-    use_env_variable: "DATABASE_URL",
+    use_env_variable: "DB_URL",
     dialectOptions: {
       bigNumberStrings: true,
       //   ssl: {
