@@ -58,6 +58,7 @@
     "nodemon": "^2.0.20",
     "path": "^0.12.7",
     "reflect-metadata": "^0.1.13",
+    "sequelize-auto-migrations-v2": "^1.2.1",
     "sequelize": "^6.23.0",
     "sequelize-cli": "^6.4.1",
     "typeorm": "^0.3.9",

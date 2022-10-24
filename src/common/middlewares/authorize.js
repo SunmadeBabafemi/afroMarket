@@ -1,5 +1,5 @@
 const KEYS = require("../config/keys");
-const models = require('../models')
+const models = require('../../db/models')
 const { HTTP } = require("../constants/http");
 const { RESPONSE } = require("../constants/response");
 const createError = require("../helpers/createError");
