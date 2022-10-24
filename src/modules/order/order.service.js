@@ -9,7 +9,7 @@ const {
 } = require('../email-notification/email.service')
 const {deliveryDate} = require('../../common/helpers/deliveryDate')
 const { uuid } = require('uuidv4')
-
+const {initiateWithdrawal} = require('../withdrawal/withdrawal.service')
 
 const {
     sequelize,
@@ -50,6 +50,7 @@ exports.createOrder = async (user, data) =>{
                 }
             } else{
                 const product = await Product.findOne({where:{id: item.id}})
+                console.log(product);
                 if(Number(product.quantity_available) < Number(item.quantity_ordered) ){
                     return{
                         error: true,
@@ -180,6 +181,7 @@ exports.createOrder = async (user, data) =>{
         )
      
         const orderPlaced = {
+            id: placedOrder.id,
             items_in_order: finalOrderedItems,
             is_paid: placedOrder.isPaid,
             payment_type: placedOrder.payment_type,
@@ -212,6 +214,11 @@ exports.createOrder = async (user, data) =>{
             tracking_id: tracking_id
         }
         
+        //Initiate customer withdrawal
+        const withdrawal = await initiateWithdrawal({
+            orderId: placedOrder.id,
+            tx_ref: paymentDetails.tx_ref,
+        })
         return {
             error: false,
             message: "Order created successfully",
@@ -220,7 +227,8 @@ exports.createOrder = async (user, data) =>{
                 tracker, 
                 customerEmailResponse: customerMail.message,
                 merchantMailResponse: merchantMail.data,
-                paymentDetails: paymentDetails
+                paymentDetails: paymentDetails,
+                withdrawalDetails: withdrawal
 
             }
         }

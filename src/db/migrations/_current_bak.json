@@ -1021,17 +1021,6 @@
                     "allowNull": false,
                     "field": "updated_at",
                     "seqType": "Sequelize.DATE"
-                },
-                "OrderId": {
-                    "allowNull": true,
-                    "references": {
-                        "model": "Orders",
-                        "key": "id"
-                    },
-                    "onDelete": "SET NULL",
-                    "onUpdate": "CASCADE",
-                    "field": "OrderId",
-                    "seqType": "Sequelize.UUID"
                 }
             },
             "indexes": []
@@ -1103,17 +1092,6 @@
                     "allowNull": false,
                     "field": "updated_at",
                     "seqType": "Sequelize.DATE"
-                },
-                "UserId": {
-                    "allowNull": true,
-                    "references": {
-                        "model": "Users",
-                        "key": "id"
-                    },
-                    "onDelete": "SET NULL",
-                    "onUpdate": "CASCADE",
-                    "field": "UserId",
-                    "seqType": "Sequelize.UUID"
                 }
             },
             "indexes": []
@@ -1296,5 +1274,5 @@
             "indexes": []
         }
     },
-    "revision": 3
+    "revision": 2
 }

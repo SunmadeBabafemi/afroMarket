@@ -1,5 +1,5 @@
 const KEYS = require("../config/keys");
-const models = require('../../db/models')
+const models = require('../models')
 const { HTTP } = require("../constants/http");
 const { RESPONSE } = require("../constants/response");
 const createError = require("../helpers/createError");
@@ -10,7 +10,7 @@ exports.authorize = () => async (req, _, next) => {
   const token =
     req.headers.authorization && req.headers.authorization.split(" ")[1];
   if (!token) {
-    next(
+    return next(
       createError(HTTP.BAD_REQUEST, [
         {
           status: RESPONSE.ERROR,
@@ -62,12 +62,12 @@ exports.authorize = () => async (req, _, next) => {
       );
     }
   } catch (err) {
-    next(
+    return next(
       createError(HTTP.BAD_REQUEST, [
         {
-          status: err.response.data.status || RESPONSE.ERROR,
-          message: err.response.data.message || err.message,
-          statusCode: err.response.data.code || HTTP.UNAUTHORIZED,
+          status:  RESPONSE.ERROR,
+          message: err.message,
+          statusCode: HTTP.UNAUTHORIZED,
         },
       ])
     );
@@ -78,7 +78,7 @@ exports.authorizeMerchant = () => async (req, _, next) => {
   const token =
     req.headers.authorization && req.headers.authorization.split(" ")[1];
   if (!token) {
-    next(
+    return next(
       createError(HTTP.BAD_REQUEST, [
         {
           status: RESPONSE.ERROR,
@@ -129,7 +129,7 @@ exports.authorizeMerchant = () => async (req, _, next) => {
       req.user = merchant;
       next();
     } else {
-      next(
+      return next(
         createError(HTTP.BAD_REQUEST, [
           {
             status: RESPONSE.ERROR,
@@ -140,12 +140,12 @@ exports.authorizeMerchant = () => async (req, _, next) => {
       );
     }
   } catch (err) {
-    next(
+    return next(
       createError(HTTP.BAD_REQUEST, [
         {
-          status: err.response.data.status || RESPONSE.ERROR,
-          message: err.response.data.message || err.message,
-          statusCode: err.response.data.code || HTTP.UNAUTHORIZED,
+          status: RESPONSE.ERROR,
+          message: err.message,
+          statusCode: HTTP.UNAUTHORIZED,
         },
       ])
     );
@@ -190,7 +190,7 @@ exports.authorizeAdmin = async (req, _, next) => {
       req.token = token
       next()
     } else {
-      next(
+      return next(
         createError(HTTP.BAD_REQUEST, [
           {
             status: RESPONSE.ERROR,
@@ -201,12 +201,12 @@ exports.authorizeAdmin = async (req, _, next) => {
       );
     }
   } catch (err) {
-    next(
+    return next(
       createError(HTTP.BAD_REQUEST, [
         {
-          status: err.response.data.status || RESPONSE.ERROR,
-          message: err.response.data.message || err.message,
-          statusCode: err.response.data.code || HTTP.UNAUTHORIZED,
+          status:  RESPONSE.ERROR,
+          message:  err.message,
+          statusCode: HTTP.UNAUTHORIZED,
         },
       ])
     );
@@ -217,7 +217,7 @@ exports.authorizeSuperAdmin =  async (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader.split(" ")[1];
   if (!token) {
-    next(
+    return next(
       createError(HTTP.BAD_REQUEST, [
         {
           status: RESPONSE.ERROR,
@@ -250,7 +250,7 @@ exports.authorizeSuperAdmin =  async (req, res, next) => {
       req.token = token
       next()
     } else {
-      next(
+      return next(
         createError(HTTP.BAD_REQUEST, [
           {
             status: RESPONSE.ERROR,
@@ -261,12 +261,12 @@ exports.authorizeSuperAdmin =  async (req, res, next) => {
       );
     }
   } catch (err) {
-    next(
+    return next(
       createError(HTTP.BAD_REQUEST, [
         {
-          status: err.response.data.status || RESPONSE.ERROR,
-          message: err.response.data.message || err.message,
-          statusCode: err.response.data.code || HTTP.UNAUTHORIZED,
+          status:  RESPONSE.ERROR,
+          message: err.message,
+          statusCode:  HTTP.UNAUTHORIZED,
         },
       ])
     );

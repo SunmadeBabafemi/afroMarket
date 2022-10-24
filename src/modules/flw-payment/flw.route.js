@@ -3,11 +3,16 @@ const { authorize } = require('../../common/middlewares/authorize')
 const validateRequest = require('../../common/middlewares/validateRequest')
 const { 
 makeInboundPaymentController,
-confirmInboundPaymentController
+confirmInboundPaymentController,
+makeMerchantWithdrawalController,
+fetchtWithdrawalController,
+retryMerchantWithdrawalController,
+retryFetchtWithdrawalController
 } = require('./flw.controller')
 const {
     createPayMentSchema,
-    confirmPayMentSchema
+    confirmPayMentSchema,
+    singleModelSchema,
 } = require('./flw.schema')
 
 const router = Router()
@@ -26,6 +31,32 @@ router.get(
     confirmInboundPaymentController
 )
 
+router.post(
+    '/withdraw',
+    authorize(),
+    makeMerchantWithdrawalController
+)
+
+router.get(
+    '/transfer/:id',
+    validateRequest(singleModelSchema, "params"),
+    authorize(),
+    fetchtWithdrawalController
+)
+
+router.post(
+    '/retry-withdraw/:id',
+    validateRequest(singleModelSchema, "params"),
+    authorize(),
+    retryMerchantWithdrawalController
+)
+
+router.get(
+    '/fetch-retry/:id',
+    validateRequest(singleModelSchema, "params"),
+    authorize(),
+   retryFetchtWithdrawalController
+)
 
 
 module.exports = router

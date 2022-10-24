@@ -9,3 +9,9 @@ exports.deliveryDate = () => {
     }
     return myDate
 }
+
+exports.setDueDate = (a) => {
+    var myDate = new Date();
+    myDate.setDate(myDate.getDate() + Number(a))
+    return myDate
+}

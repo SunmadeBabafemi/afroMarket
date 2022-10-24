@@ -26,6 +26,7 @@ const KEYS = {
   flwSecKey: process.env.FLW_SEC_KEY,
   flwEncKey: process.env.FLW_ENC_KEY,
   flwPaymentUrl: process.env.FLW_PAYMENT_URL,
+  flyTransferUrl: process.env.FLW_TRANSFER_URL,
   flwRedirectUrl: process.env.FLW_REDIRECT_URL
 };
 

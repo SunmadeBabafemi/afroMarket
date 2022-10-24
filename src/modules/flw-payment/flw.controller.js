@@ -69,3 +69,114 @@ exports.confirmInboundPaymentController = async (req, res, next) => {
 }
 
 
+exports.makeMerchantWithdrawalController = async (req, res, next) => {
+    try {
+        const {error, message, data} = await flwPayService.makeMerchantWithdrawal({
+            user_id: req.userId, 
+            data: req.body
+        })
+
+        if (error) {
+        return next(
+            createError(HTTP.BAD_REQUEST, [
+            {
+                status: RESPONSE.ERROR,
+                message,
+                statusCode:
+                data instanceof Error ? HTTP.SERVER_ERROR : HTTP.BAD_REQUEST,
+                data,
+            },
+            ])
+        );
+        }
+        return createResponse(message, data)(res, HTTP.CREATED);
+    } catch (error) {
+        console.error(error);
+
+        return next(createError.InternalServerError(error));
+    }
+}
+
+exports.fetchtWithdrawalController = async (req, res, next) => {
+    try {
+        const {error, message, data} = await flwPayService.fetchTransferResponse({
+            user_id: req.userId, 
+            transfer_id: req.params.id
+        })
+
+        if (error) {
+        return next(
+            createError(HTTP.BAD_REQUEST, [
+            {
+                status: RESPONSE.ERROR,
+                message,
+                statusCode:
+                data instanceof Error ? HTTP.SERVER_ERROR : HTTP.BAD_REQUEST,
+                data,
+            },
+            ])
+        );
+        }
+        return createResponse(message, data)(res, HTTP.CREATED);
+    } catch (error) {
+        console.error(error);
+
+        return next(createError.InternalServerError(error));
+    }
+}
+
+exports.retryMerchantWithdrawalController = async (req, res, next) => {
+    try {
+        const {error, message, data} = await flwPayService.retryWithdrawal({
+            user_id: req.userId, 
+            flw_transfer_id: req.params.id
+        })
+
+        if (error) {
+        return next(
+            createError(HTTP.BAD_REQUEST, [
+            {
+                status: RESPONSE.ERROR,
+                message,
+                statusCode:
+                data instanceof Error ? HTTP.SERVER_ERROR : HTTP.BAD_REQUEST,
+                data,
+            },
+            ])
+        );
+        }
+        return createResponse(message, data)(res, HTTP.CREATED);
+    } catch (error) {
+        console.error(error);
+
+        return next(createError.InternalServerError(error));
+    }
+}
+
+exports.retryFetchtWithdrawalController = async (req, res, next) => {
+    try {
+        const {error, message, data} = await flwPayService.fetchRetryWithdrawal({
+            user_id: req.userId, 
+            transfer_id: req.params.id
+        })
+
+        if (error) {
+        return next(
+            createError(HTTP.BAD_REQUEST, [
+            {
+                status: RESPONSE.ERROR,
+                message,
+                statusCode:
+                data instanceof Error ? HTTP.SERVER_ERROR : HTTP.BAD_REQUEST,
+                data,
+            },
+            ])
+        );
+        }
+        return createResponse(message, data)(res, HTTP.CREATED);
+    } catch (error) {
+        console.error(error);
+
+        return next(createError.InternalServerError(error));
+    }
+}

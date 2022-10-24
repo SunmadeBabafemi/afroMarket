@@ -17,3 +17,7 @@ exports.confirmPayMentSchema = Joi.object().keys({
     status: Joi.string().required(),
     transaction_id: Joi.string().required(),
 })
+
+exports.singleModelSchema = Joi.object().keys({
+    id: Joi.string().required(),
+})

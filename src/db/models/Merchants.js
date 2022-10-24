@@ -3,7 +3,7 @@ const {Model} = require('sequelize')
 module.exports = (sequelize, DataTypes) =>{
   class Merchant extends Model {
     static associate(models){
-        this.hasMany(models.Product, {as: 'Product'}),
+        this.hasMany(models.Product, {as: 'Product'})
         this.hasMany(models.Inventory, {as: 'Inventory'})
 
     }
@@ -25,6 +25,15 @@ module.exports = (sequelize, DataTypes) =>{
         defaultValue: 'public limited company'
       },
       business_description: {
+        type: DataTypes.STRING,
+      },
+      bank_name: {
+        type: DataTypes.STRING
+      },
+      account_name: {
+        type: DataTypes.STRING
+      },
+      account_number:{
         type: DataTypes.STRING,
       },
       bank_verification_number:{

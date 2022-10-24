@@ -2,18 +2,22 @@ const KEYS = require('../../common/config/keys')
 const Flutterwave = require('flutterwave-node-v3')
 const flw = new Flutterwave(KEYS.flwPubkey, KEYS.flwSecKey)
 const axios = require('axios')
-const models = require('../../db/models')
-var Sequelize = require('sequelize')
+const models = require('../../common/models')
+var {Op} = require('sequelize')
 const { uuid } = require('uuidv4')
+const {updateWithdrawal} = require('../withdrawal/withdrawal.service')
+const moment = require('moment/moment')
 const {
     sequelize,
     Order,
+    Payout,
     Product,
     OrderedItem,
     Inventory,
     Merchant,
     Tracker,
-    Transaction
+    Transaction,
+    Withdrawal
 } = models
 
 
@@ -148,6 +152,13 @@ exports.confirmPaymentInbound = async (paymentResponse) => {
             return paidOrder
         }
         
+        // Update Merchant Withdrawals status to 'approved' since payment has been confirmed
+        const payload = {
+            orderId: pendingTransaction.orderId,
+            tx_ref: tx_ref,
+            status: 'approved'
+        }
+        await updateWithdrawal(payload)
 
         return{
             error: false,
@@ -168,3 +179,294 @@ exports.confirmPaymentInbound = async (paymentResponse) => {
     }
     
 } 
+
+exports.makeMerchantWithdrawal = async (payload) => {
+    try {
+       const {
+        user_id,
+        data   
+       } = payload 
+       console.log(user_id);
+       console.log(data.MerchantId);
+
+       if(user_id !== data.MerchantId){
+        return {
+            error: true,
+            message: 'Payout process lost',
+            data: null
+        } 
+       }
+
+       const merchant = await Merchant.findOne({where: {id: user_id}})
+
+       const ref = `AM-${Math.floor(Date.now() + Math.random() * 100000000)
+            .toString(36)
+            .toUpperCase()}`
+       // Create a payout model for the withdrawal
+       const payout = await Payout.create({
+        ...data,
+        beneficiary_account_bank: merchant.bank_name,
+        beneficiary_account_name: merchant.account_name,
+        beneficiary_account_number: merchant.account_number,
+        MerchantId: merchant.id
+
+       })
+        const details = {
+            account_bank:  merchant.bank_name,
+            account_number: merchant.account_number,
+            amount: payout.payable_amount,
+            narration: payout.narration,
+            currency: payout.debit_currency,
+            reference: payout.payment_ref,
+            callback_url: KEYS.flwRedirectUrl,
+            debit_currency: payout.debit_currency,
+        }
+
+        const flwWithdrawal = await axios.post(
+            KEYS.flyTransferUrl,
+            details,
+            {
+                headers: {
+                    Authorization: `Bearer ${KEYS.flwSecKey}`
+                }
+            },  
+        )
+        if (flwWithdrawal.status >= 400){
+            return {
+                error: true,
+                message: flwWithdrawal.statusText,
+                data: flwWithdrawal.data.message
+            }
+        }
+        const withdrawalData = flwWithdrawal.data
+
+        const transfer_id = withdrawalData.data.id
+        await Payout.update(
+                {
+                    flw_transfer_id: transfer_id,
+                    status: withdrawalData.data.status,
+                },
+                {where:{id: payout.id}}
+            )
+       
+
+        // if(String(withdrawalStatus.data.status) === "FAILED"){        
+        //     await Payout.update(
+        //         {
+        //             flw_transfer_id: withdrawalData.data.id,
+        //             status: 'successful',
+        //             date_paid: new Date()
+        //         },
+        //         {where:{id: payout.id}}
+        //     )
+        // } else if (String(withdrawalData.status) !== "success"){
+        //     const retryPath = `/${withdrawalData.data.id}/retries` 
+        //     const retryWithdrawal = await axios.post(
+        //         KEYS.flyTransferUrl+retryPath,
+        //         {
+        //             headers: {
+        //                 Authorization: `Bearer ${KEYS.flwSecKey}`
+        //             }
+        //         },
+        //     )
+        //     withdrawalData = retryWithdrawal.data
+        //      if(String(withdrawalData.status) === "success"){        
+        //         await Payout.update(
+        //             {
+        //                 flw_transfer_id: withdrawalData.data.id,
+
+        //             },
+        //             {where:{id: payout.id}}
+        //         )
+        //     }
+
+        // }
+
+        const payoutUpdate = await Payout.findOne({where:{id: payout.id}})
+       return {
+        error: false,
+        message: "Withdrawals Successful",
+        data: {
+            withdrawalData, 
+            payoutUpdate
+        }
+       }
+
+    } catch (error) {
+        console.log(error);
+        return {
+            error: true,
+            message: "Unable to initiate Transfer",
+            data: null
+        }
+    }
+}
+
+
+exports.fetchTransferResponse = async (data) =>{
+    try {
+        const {
+            user_id,
+            transfer_id
+        } = data
+
+        const withdrawalStatus = await axios.get(
+            KEYS.flyTransferUrl+`/${transfer_id}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${KEYS.flwSecKey}`
+                }
+            },
+        ) 
+        const withdrawalStatusData = withdrawalStatus.data
+        
+        if(String(withdrawalStatusData.data.status) === 'SUCCESSFUL'){
+            await Payout.update(
+                {
+                    status: withdrawalStatusData.data.status,
+                    remarks: withdrawalStatusData.data.complete_message,
+                    date_paid: new Date()
+                },
+                {where:{flw_transfer_id: Number(transfer_id)}}
+            )
+        } else {
+            await Payout.update(
+                {
+                    status: withdrawalStatusData.data.status,
+                    remarks: withdrawalStatusData.data.complete_message,
+                },
+                {where:{flw_transfer_id: Number(transfer_id)}}
+            )
+        }
+        const payoutUpdate = await Payout.findOne(
+            {where:{flw_transfer_id: Number(transfer_id)}}
+        )
+         
+        return {
+            error: false,
+            message: 'Transfer reseponse retrieved successfully',
+            data: {
+                withdrawalStatusData,
+                payoutUpdate
+            }
+        }
+
+    } catch (error) {
+        console.log(error);
+        return  {
+            error: true,
+            message: error.message || "Unable to retrieve transfer at the moment",
+            data: null
+        }
+    }
+}
+
+exports.retryWithdrawal = async (data) => {
+    try {
+        const {
+            user_id,
+            flw_transfer_id
+        } = data
+        console.log(flw_transfer_id);
+        const failedPayout = await Payout.findOne({
+            where: {
+                flw_transfer_id: parseInt(flw_transfer_id),
+                MerchantId: user_id,
+                status: 'FAILED'
+            }
+        })
+        if(!failedPayout){
+            return {
+                error: true,
+                message: 'No transaction Found',
+                data: null
+            }
+        }
+
+        const flwWithdrawalRetry = await axios.post(
+            KEYS.flyTransferUrl + `/${flw_transfer_id}/retries`,
+            data,
+            {
+                headers: {
+                    Authorization: `Bearer ${KEYS.flwSecKey}`
+                }
+            },  
+        )
+        
+        const retryData = flwWithdrawalRetry.data
+        
+
+        return {
+            error: false,
+            message: retryData.message,
+            data: retryData
+        }
+
+    } catch (error) {
+        console.log(error);
+        return {
+            error: true,
+            message: error.message,
+            data: null
+        }
+        
+    }
+}
+
+exports.fetchRetryWithdrawal = async (data) =>{
+    try {
+        const {
+            user_id,
+            transfer_id
+        } = data
+
+        const retryWithdrawalStatus = await axios.get(
+            KEYS.flyTransferUrl+`/${transfer_id}/retries`,
+            {
+                headers: {
+                    Authorization: `Bearer ${KEYS.flwSecKey}`
+                }
+            },
+        ) 
+        const withdrawalStatusData = retryWithdrawalStatus.data
+        
+        if(String(withdrawalStatusData.data.status) === 'SUCCESSFUL'){
+            await Payout.update(
+                {
+                    status: withdrawalStatusData.data.status,
+                    remarks: withdrawalStatusData.data.complete_message,
+                    date_paid: new Date()
+                },
+                {where:{flw_transfer_id: Number(transfer_id)}}
+            )
+        } else {
+            await Payout.update(
+                {
+                    status: withdrawalStatusData.data.status,
+                    remarks: withdrawalStatusData.data.complete_message,
+                },
+                {where:{flw_transfer_id: Number(transfer_id)}}
+            )
+        }
+        const payoutUpdate = await Payout.findOne(
+            {where:{flw_transfer_id: Number(transfer_id)}}
+        )
+         
+        return {
+            error: false,
+            message: 'Transfer reseponse retrieved successfully',
+            data: {
+                withdrawalStatusData,
+                payoutUpdate
+            }
+        }
+
+    } catch (error) {
+        console.log(error);
+        return  {
+            error: true,
+            message: error.message || "Unable to retrieve transfer at the moment",
+            data: null
+        }
+    }
+}
