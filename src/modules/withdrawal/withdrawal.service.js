@@ -1,6 +1,6 @@
 
 const KEYS = require('../../common/config/keys')
-const models = require('../../common/models')
+const models = require('../../db/models')
 var Sequelize = require('sequelize')
 const randomString = require('../../common/helpers/randString')
 const {deliveryDate} = require('../../common/helpers/deliveryDate')
