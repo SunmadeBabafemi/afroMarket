@@ -1,6 +1,6 @@
 const models = require('../../db/models')
 var Sequelize = require('sequelize')
-const imageUploader = require('../../common/helpers/cloudImageUpload')
+const {fileUploader} = require('../../common/helpers/cloudImageUpload')
 const {getPaginatedRecords} = require('../../common/helpers/paginate')
 
 const {
@@ -11,11 +11,20 @@ const {
 
 exports.uploadProduct = async (payload) =>{
     try {
-        const {user, data} = payload
+        const {
+            user,
+            name,
+            description,
+            quantity_available,
+            price,
+            category_id,
+            files
+        } = payload
+        const imageArray = []
         const existingProduct = await Product.findOne({
             where:{
                 MerchantId: user.id,
-                name: data.name,
+                name: name,
                 deleted: false
             }
         })
@@ -29,15 +38,57 @@ exports.uploadProduct = async (payload) =>{
         }
         const newProduct= await Product.create(
             {
-                ...data,
+                name,
+                description,
+                quantity_available: Number(quantity_available),
+                price: Number(price),
+                CategoryId: category_id,
                 MerchantId:user.id,           
             },
             {raw: true}
         )
+        for(const file of files){
+            const {path} = file
+            const url = await fileUploader(path)
+            imageArray.push(url)
+        }
+        if(Number(imageArray.length) === 3){
+            await Product.update(
+                {
+                    picture: imageArray[0],
+                    picture_2: imageArray[1],
+                    picture_3: imageArray[2]
+                },
+                {
+                    where:{id: newProduct.id}
+                }
+            )
+        } else if (Number(imageArray.length) === 2) {
+            await Product.update(
+                {
+                    picture: imageArray[0],
+                    picture_2: imageArray[1],
+                },
+                {
+                    where:{id: newProduct.id}
+                }
+            )
+        } else if (Number(imageArray.length) === 1) {
+            await Product.update(
+                {
+                    picture: imageArray[0],
+                },
+                {
+                    where:{id: newProduct.id}
+                }
+            )
+        }
+        
+        const fullProduct = await Product.findOne({where:{id: newProduct.id}})
         return {
             error: false,
             message: "Product uploaded successfully",
-            data: newProduct
+            data: fullProduct
         }
 
     } catch (error) {
@@ -51,52 +102,12 @@ exports.uploadProduct = async (payload) =>{
     }
 }
 
-exports.uploadProductImages = async(payload)=>{
-    try {
-        const {product_id, file} = payload
-        const url = await imageUploader(file)
-        if(!url){
-            return{
-                code: 400,
-                status: "error",
-                message: "failed to upload product image",
-                data: null
-            }
-        }
-        await Product.update(
-            {picture: url},
-            {where:
-                {
-                    id:product_id,
-                    deleted: false
-                },
-                
-            }
-        )
-        const updatedProduct = await Product.findOne({id: product_id})
-        return{
-            error: false,
-            message: "Image upload successful",
-            data: updatedProduct
-        }
-
-    } catch (error) {
-        console.log(error);
-        return{
-            error: true,
-            message: "Unable to upload image at the moment",
-            data:error
-        }
-    }
-
-
-}
 
 exports.getSingleProductByAUser = async (data) =>{
     try {
         const existingProduct = await Product.findOne({
             where:{
-                id: Number(data.id),
+                id: (data.id),
                 deleted: false
             }
         })
@@ -129,7 +140,7 @@ exports.getSingleProductByAMerchant = async (data) =>{
     try {
         const existingProduct = await Product.findOne({
             where:{
-                id: Number(data.id),
+                id: (data.id),
                 deleted: false
             }
         })
@@ -200,7 +211,7 @@ exports.removeProduct = async (user, data) =>{
         const existingProduct = await Product.findOne({
             where:{
                 MerchantId: user.id,
-                id: Number(data.id),
+                id: (data.id),
                 deleted: false
             }
         })
@@ -216,7 +227,7 @@ exports.removeProduct = async (user, data) =>{
                 {deleted: true},
                 {
                     where:{
-                        id: Number(data.id),
+                        id: (data.id),
                         MerchantId:user.id
                     }   
                 }
@@ -224,7 +235,7 @@ exports.removeProduct = async (user, data) =>{
             const deletedProduct = await Product.findOne({
                 where:{
                     MerchantId: user.id,
-                    id: Number(data.id)
+                    id:(data.id)
                 }
             })
         return {

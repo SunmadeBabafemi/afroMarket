@@ -5,7 +5,6 @@ const upload = require('../../common/config/multer')
 const { 
     uploadProductController,
     removeProductController,
-    uploadProductImagesController,
     getSingleProductyByAUserController,
     getAllProductsController,
     getMyProductsByMerchantController,
@@ -14,7 +13,6 @@ const {
 const {
  uploadProductSchema,
  singleProductSchema,
- uploadProductImageSchema,
  getAllProductSchema
 } = require('./product.schema')
 
@@ -22,16 +20,10 @@ const router = Router()
 
 router.post(
     '/upload',
-    validateRequest(uploadProductSchema, "body"),
-    authorize(),
-    uploadProductController
-)
-router.patch(
-    '/:id/upload-image',
-    validateRequest(uploadProductImageSchema, "params"),
+    upload.array("image"),
+    // validateRequest(uploadProductSchema, "body"),
     authorizeMerchant(),
-    upload.single("image"),
-    uploadProductImagesController
+    uploadProductController
 )
 
 router.get(
@@ -54,7 +46,7 @@ router.get(
 
 router.get(
     '/my-all',
-    authorize(),
+    authorizeMerchant(),
     validateRequest(getAllProductSchema, "query"),
     getMyProductsByMerchantController
 ) 

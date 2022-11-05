@@ -8,7 +8,12 @@ exports.uploadProductController = async (req, res, next) => {
     try {
         const {error, message, data} = await ProductService.uploadProduct({
             user: req.user, 
-            data: req.body,
+            name: req.body.name,
+            description: req.body.description,
+            quantity_available: req.body.quantity_available,
+            price: req.body.price,
+            category_id: req.body.category_id,
+            files: req.files
         })
 
         if (error) {
@@ -32,33 +37,6 @@ exports.uploadProductController = async (req, res, next) => {
     }
 }
 
-exports.uploadProductImagesController = async (req, res, next) => {
-    try {
-        const {error, message, data} = await ProductService.uploadProductImages({
-            product_id: req.params.id,
-            file: req.file.path
-        })
-
-        if (error) {
-        return next(
-            createError(HTTP.BAD_REQUEST, [
-            {
-                status: RESPONSE.ERROR,
-                message,
-                statusCode:
-                data instanceof Error ? HTTP.SERVER_ERROR : HTTP.BAD_REQUEST,
-                data,
-            },
-            ])
-        );
-        }
-        return createResponse(message, data)(res, HTTP.CREATED);
-    } catch (error) {
-        console.error(error);
-
-        return next(createError.InternalServerError(error));
-    }
-}
 
 exports.getSingleProductyByAUserController = async (req, res, next) => {
     try {

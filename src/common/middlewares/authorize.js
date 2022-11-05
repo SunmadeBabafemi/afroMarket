@@ -74,6 +74,67 @@ exports.authorize = () => async (req, _, next) => {
   }
 };
 
+exports.authorizeUser = () => async (req, _, next) => {
+  const token =
+    req.headers.authorization && req.headers.authorization.split(" ")[1];
+  if (!token) {
+    return next(
+      createError(HTTP.BAD_REQUEST, [
+        {
+          status: RESPONSE.ERROR,
+          message: "Authorization token is missing.",
+          statusCode: HTTP.UNAUTHORIZED,
+        },
+      ])
+    );
+  }
+  try {
+    const {id} = await jwtVerify(token)
+     const user = await User.findOne({
+    where:{id}
+    });
+
+    if (!user) {
+      return next(
+        createError(HTTP.UNAUTHORIZED, [
+          {
+            status: RESPONSE.ERROR,
+            message: 'Unauthorized to perform this action',
+            statusCode: HTTP.UNAUTHORIZED,
+          },
+        ])
+      );
+    }
+    if(user) {
+      req.userId = user.id
+      req.user = user
+      req.token = token
+      next()
+    } else {
+      next(
+        createError(HTTP.BAD_REQUEST, [
+          {
+            status: RESPONSE.ERROR,
+            message: "Invalid auth token.",
+            statusCode: HTTP.UNAUTHORIZED,
+          },
+        ])
+      );
+    }
+  } catch (err) {
+    return next(
+      createError(HTTP.BAD_REQUEST, [
+        {
+          status:  RESPONSE.ERROR,
+          message: err.message,
+          statusCode: HTTP.UNAUTHORIZED,
+        },
+      ])
+    );
+  }
+};
+
+
 exports.authorizeMerchant = () => async (req, _, next) => {
   const token =
     req.headers.authorization && req.headers.authorization.split(" ")[1];
@@ -94,9 +155,9 @@ exports.authorizeMerchant = () => async (req, _, next) => {
     where:{id}
     });
 
-    const ownedProduct = await Product.findOne({
-      where: {id: Number(req.params.id)}
-    })
+    // const ownedProduct = await Product.findOne({
+    //   where: {id: (req.params.id)}
+    // })
 
     if (!merchant) {
       return next(
@@ -110,17 +171,17 @@ exports.authorizeMerchant = () => async (req, _, next) => {
       );
     }
 
-    if (merchant.id !== ownedProduct.MerchantId) {
-      return next(
-        createError(HTTP.UNAUTHORIZED, [
-          {
-            status: RESPONSE.ERROR,
-            message: 'Unauthorized to perform this action',
-            statusCode: HTTP.UNAUTHORIZED,
-          },
-        ])
-      );
-    }
+    // if (merchant.id !== ownedProduct.MerchantId) {
+    //   return next(
+    //     createError(HTTP.UNAUTHORIZED, [
+    //       {
+    //         status: RESPONSE.ERROR,
+    //         message: 'Unauthorized to perform this action',
+    //         statusCode: HTTP.UNAUTHORIZED,
+    //       },
+    //     ])
+    //   );
+    // }
 
 
 
@@ -272,3 +333,4 @@ exports.authorizeSuperAdmin =  async (req, res, next) => {
     );
   }
 };
+
