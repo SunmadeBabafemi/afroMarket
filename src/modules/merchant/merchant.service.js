@@ -4,6 +4,7 @@ const imageUploader = require('../../common/helpers/cloudImageUpload')
 const {hashPassword, comparePassword} = require('../../common/helpers/password')
 const {jwtSign} = require('../../common/helpers/token')
 const cloudinary = require('../../common/config/cloudinary')
+const { getPaginatedRecords } = require('../../common/helpers/paginate')
 const {
     sequelize,
     Merchant
@@ -140,3 +141,42 @@ exports.uploadBrandImage = async(payload) => {
         }
     }
 }
+
+exports.getAllMerchants = async(data) => {
+    try {
+        const {limit, page} = data
+        const allMerchants = await getPaginatedRecords(Merchant,{
+            limit: Number(limit),
+            page: Number(page),
+            selectedFields: ['id', 'business_name', 'email', 'ratings', 'phone_number', 'brand_image', 'address']
+        })
+        if(allMerchants.data.length < 1) {
+            return {
+                error: false,
+                message: "No merchants at the moment",
+                data: {
+                    allMerchants:[],
+                    pagination: 0
+                }
+            }
+        }
+        return {
+            error: false,
+            message: "Merchants retreived successfully",
+            data: {
+                allMerchants: allMerchants,
+                pagination: allMerchants.perPage
+            }
+        }
+
+    } catch (error) {
+        console.log(error);
+        return {
+            error: true,
+            message: error.message || "Error retreiving merchants at the moment",
+            data: null
+        }
+    }
+}
+
+

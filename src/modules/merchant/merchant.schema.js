@@ -21,3 +21,7 @@ exports.loginMerchantSchema = Joi.object().keys({
      .xor("email", "phone_number")
     .label("field");
 
+exports.paginateSchema = Joi.object({
+  page: Joi.number().positive().optional(),
+  limit: Joi.number().positive().optional(),
+});

@@ -6,11 +6,13 @@ const upload = require('../../common/config/multer')
 const { 
 registerMerchantController,
 loginMerchantController,
-uploadBrandImageController
+uploadBrandImageController,
+getAllMerchantsController
 } = require('./merchant.controller')
 const {
  registerMerchantSchema,
  loginMerchantSchema,
+ paginateSchema,
 } = require('./merchant.schema')
 
 const router = Router()
@@ -32,6 +34,12 @@ router.patch(
     authorize(),
     upload.single("image"),
     uploadBrandImageController
+)
+
+router.get(
+    '/all',
+    validateRequest(paginateSchema, 'query'),
+    getAllMerchantsController
 )
 
 module.exports = router

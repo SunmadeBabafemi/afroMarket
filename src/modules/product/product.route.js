@@ -8,7 +8,8 @@ const {
     getSingleProductyByAUserController,
     getAllProductsController,
     getMyProductsByMerchantController,
-    getSingleProductyByAMerchantController
+    getSingleProductyByAMerchantController,
+    getAllProductsByMerchantController
 } = require('./product.controller')
 const {
  uploadProductSchema,
@@ -51,6 +52,13 @@ router.get(
     getMyProductsByMerchantController
 ) 
 
+
+router.get(
+    '/by-merchant/:id',
+    validateRequest(getAllProductSchema, "query"),
+    validateRequest(singleProductSchema, "params"),
+    getAllProductsByMerchantController
+) 
 router.post(
     '/remove/:id',
     validateRequest(singleProductSchema, "params"),

@@ -284,3 +284,32 @@ exports.getMyProductsByMerchant = async (data) =>{
         
     }
 }
+
+exports.getAlllProductsByMerchant = async (data) =>{
+    try {
+        const {merchant_id, limit, page} = data
+        const allProducts = await getPaginatedRecords(Product, {
+            limit: Number(limit),
+            page: Number(page),
+            data: {MerchantId: merchant_id},
+            selectedFields: ["id", "name", "picture", "description", "ratings", "price", "deleted"]
+        })
+        return {
+            error: false,
+            message: "Product retreived successfully",
+            data: {
+                allProducts: allProducts,
+                pagination: allProducts.perPage
+            }
+        }
+
+    } catch (error) {
+        console.log(error)
+        return{
+            error: true,
+            message: error.message|| "Unable to retreive product at the moment",
+            data: null
+        }
+        
+    }
+}
