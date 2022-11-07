@@ -1,6 +1,6 @@
 const models = require('../../db/models')
 var Sequelize = require('sequelize')
-const imageUploader = require('../../common/helpers/cloudImageUpload')
+const {fileUploader} = require('../../common/helpers/cloudImageUpload')
 const {hashPassword, comparePassword} = require('../../common/helpers/password')
 const {jwtSign} = require('../../common/helpers/token')
 const cloudinary = require('../../common/config/cloudinary')
@@ -12,9 +12,24 @@ const {
 
 exports.registerMerchant = async (data) =>{
     try {
+        const {
+            business_name,
+            business_description,
+            business_type,
+            email,
+            inputedPassword,
+            phone_number,
+            address,
+            bank_name,
+            account_name,
+            account_number,
+            bank_verification_number,
+            tax_id_number,
+            files
+        } = data
         let password
-        if(data.password){
-            password = hashPassword(data.password)
+        if(inputedPassword){
+            password = hashPassword(inputedPassword)
         }
         const existingMerchant = await Merchant.findOne({
             where:{
@@ -32,15 +47,47 @@ exports.registerMerchant = async (data) =>{
         }
         const newMerchant = await Merchant.create(
             {
-                ...data,
-                password: data.password? password: null
+                business_name: business_name? business_name: null,
+                business_description: business_description? business_description: null,
+                business_type: business_type? business_type: "public limited company",
+                tax_id_number: tax_id_number? tax_id_number: null,
+                email: email? email: null,
+                password: inputedPassword? password: null,
+                phone_number: phone_number? phone_number: null,
+                address: address? address: null,
+                bank_name: bank_name? bank_name: null,
+                account_name: account_name? account_name: null,
+                account_number: account_number? account_number: null,
+                bank_verification_number: bank_verification_number? bank_verification_number: null,
+
             },
             {raw: true}
         )
+        const uploadUrls = []
+
+        //upload docs
+        for(const file of files) {
+            const {path} = file
+            const url = await fileUploader(path)
+            uploadUrls.push(url)
+        }
+        await Merchant.update(
+            {
+                cac_document: uploadUrls[0],
+                brand_image: uploadUrls[1]
+            },
+            {
+             where: {id: newMerchant.id}
+            }
+        )
+        const updatedMerchant = await Merchant.findOne({
+            attributes:{exclude:['password', 'deleted']},
+            where: {id: newMerchant.id}
+        })
         return {
             error: false,
             message: "merchant registered successfully",
-            data: newMerchant
+            data: updatedMerchant
         }
 
     } catch (error) {
@@ -98,49 +145,7 @@ exports.loginMerchant = async(user, data) => {
     }
 }
 
-exports.uploadBrandImage = async(payload) => {
-    try {
-        const {merchantId, file } = payload
-        const url = await imageUploader(file)
-        // const {url} = await cloudinary.uploader.upload(file)
-        if(!url){
-            return{
-                code: 400,
-                status: "error",
-                message: "failed to upload brand image",
-                data: null
-            }
-        }
-        await Merchant.update(
-            {brand_image: url},
-            {where:
-                {
-                    id: merchantId,
-                    deleted: false
-                }
-            }
-        )
-  
-        const updatedMerchant = await Merchant.findOne({
-            attributes:['email','business_name', 'id', 'phone_number', 'brand_image'],
-            where:{id: merchantId, deleted: false}
-        })
 
-        return{
-            error: false,
-            message: 'Brand image upload successful',
-            data:updatedMerchant
-        }
-
-    } catch (error) {
-        console.log(error)
-        return{
-            error: true,
-            message: error.message|| "Unable toupload brand image at the moment",
-            data: null
-        }
-    }
-}
 
 exports.getAllMerchants = async(data) => {
     try {

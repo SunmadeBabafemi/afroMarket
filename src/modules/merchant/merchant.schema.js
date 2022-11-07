@@ -3,9 +3,22 @@ Joi.objectId = require("joi-objectid")(Joi);
 
 exports.registerMerchantSchema = Joi.object().keys({
     business_name: Joi.string().required(),
+    business_description: Joi.string().required(),
+    business_type: Joi.string()
+        .valid(
+            'public limited company', 
+            'private limited company'
+        )
+        .optional(),
+    tax_id_number: Joi.number().optional(),
     email: Joi.string().required(),
     password: Joi.string().required(),
-    phone_number: Joi.string().required() 
+    phone_number: Joi.string().required(),
+    address: Joi.string().optional(),
+    bank_name: Joi.string().optional(),
+    account_name: Joi.string().optional(),
+    account_number: Joi.string().optional(),
+    bank_verification_number: Joi.number().optional(),
 })
 
 exports.loginMerchantSchema = Joi.object().keys({
