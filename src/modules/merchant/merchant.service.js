@@ -7,7 +7,9 @@ const cloudinary = require('../../common/config/cloudinary')
 const { getPaginatedRecords } = require('../../common/helpers/paginate')
 const {
     sequelize,
-    Merchant
+    Merchant,
+    Product,
+    Review
 } = models
 
 exports.registerMerchant = async (data) =>{
@@ -184,4 +186,44 @@ exports.getAllMerchants = async(data) => {
     }
 }
 
+exports.viewAMerchant = async (data) => {
+    try {
+       const {
+        merchant_id
+       } = data 
 
+       const merchant = await Merchant.findOne({where:{id:merchant_id}})
+       if(!merchant){
+            return {
+                error: false,
+                message:"Merchant not found",
+                data: null
+            }
+       }
+       const generalReviews = []
+       const allMerchantProducts = await Product.findAll({where:{MerchantId: merchant.id}})
+       if(allMerchantProducts.length >0){
+            for(const prods of allMerchantProducts){
+                const reviews = await Review.findAll({where:{ProductId:prods.id}})
+                generalReviews.push(...reviews)
+            }
+       }
+       return {
+        error: false,
+        message: "Merchant retrieved successfully",
+        data:{
+            merchant,
+            no_of_reviews: generalReviews.length,
+            reviews: generalReviews
+        }
+       }
+    } catch (error) {
+        console.log(error);
+        return{
+            error: true,
+            message: error.message ||"Unable to view merchant at the moment",
+            data: null
+        }
+        
+    }
+}

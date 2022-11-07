@@ -6,12 +6,14 @@ const upload = require('../../common/config/multer')
 const { 
 registerMerchantController,
 loginMerchantController,
-getAllMerchantsController
+getAllMerchantsController,
+viewAMerchantController
 } = require('./merchant.controller')
 const {
  registerMerchantSchema,
  loginMerchantSchema,
  paginateSchema,
+ modelIdSchema,
 } = require('./merchant.schema')
 
 const router = Router()
@@ -33,6 +35,12 @@ router.get(
     '/all',
     validateRequest(paginateSchema, 'query'),
     getAllMerchantsController
+)
+
+router.get(
+    '/view/:id',
+    validateRequest(modelIdSchema, 'params'),
+    viewAMerchantController
 )
 
 module.exports = router

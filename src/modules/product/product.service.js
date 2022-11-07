@@ -52,31 +52,10 @@ exports.uploadProduct = async (payload) =>{
             const url = await fileUploader(path)
             imageArray.push(url)
         }
-        if(Number(imageArray.length) === 3){
+        if(imageArray.length > 0){
             await Product.update(
-                {
-                    picture: imageArray[0],
-                    picture_2: imageArray[1],
-                    picture_3: imageArray[2]
-                },
-                {
-                    where:{id: newProduct.id}
-                }
-            )
-        } else if (Number(imageArray.length) === 2) {
-            await Product.update(
-                {
-                    picture: imageArray[0],
-                    picture_2: imageArray[1],
-                },
-                {
-                    where:{id: newProduct.id}
-                }
-            )
-        } else if (Number(imageArray.length) === 1) {
-            await Product.update(
-                {
-                    picture: imageArray[0],
+                {   
+                    images: imageArray,
                 },
                 {
                     where:{id: newProduct.id}
@@ -84,6 +63,7 @@ exports.uploadProduct = async (payload) =>{
             )
         }
         
+       
         const fullProduct = await Product.findOne({where:{id: newProduct.id}})
         return {
             error: false,
@@ -292,7 +272,7 @@ exports.getAlllProductsByMerchant = async (data) =>{
             limit: Number(limit),
             page: Number(page),
             data: {MerchantId: merchant_id},
-            selectedFields: ["id", "name", "picture", "description", "ratings", "price", "deleted"]
+            selectedFields: ["id", "name", "images", "description", "ratings", "price", "deleted"]
         })
         return {
             error: false,
