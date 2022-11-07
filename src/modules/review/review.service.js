@@ -5,7 +5,8 @@ const {paginateRaw} = require('../../common/helpers/paginate')
 const {
     sequelize,
     Product,
-    Review
+    Review,
+    Merchant
 } = models
 
 exports.createReview = async (payload) =>{
@@ -21,19 +22,34 @@ exports.createReview = async (payload) =>{
         const result = await Review.findAll({
              attributes: [
                 [Sequelize.fn('AVG', Sequelize.cast(Sequelize.col('rating'), 'integer')), 'avgRating']
-            ]
+            ],
+            where:{ProductId: productId}
         })
         const avgRating = result[0].dataValues.avgRating
         await Product.update(
             {ratings: Number(avgRating)},
             {where:{id: productId}}
         )
+    // update merchant ratings
+        const product = await Product.findOne({where:{id: productId}})
+        const allProducts = await Product.findAll({
+             attributes: [
+                [Sequelize.fn('AVG', Sequelize.cast(Sequelize.col('ratings'), 'integer')), 'avgRating']
+            ],
+            where:{MerchantId: product.MerchantId}
+        })
+        const merchRatings = allProducts[0].dataValues.avgRating
+        await Merchant.update(
+            {ratings: Number(merchRatings)},
+            {where:{id: product.MerchantId}}
+        )
          return {
             error: false,
             message: "Review submitted successfully",
             data: {
                 review: review,
-                averageRating: avgRating
+                averageRating: avgRating,
+                merhantRating: merchRatings
             }
         }
 
