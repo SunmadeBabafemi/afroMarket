@@ -14,6 +14,7 @@ exports.createReview = async (payload) =>{
 
         const {body, user, productId} = payload
         
+        const prod = await Product.findOne({where:{id: productId}})
         const review = await Review.create({
             ...body,
             ProductId: productId,
@@ -27,7 +28,10 @@ exports.createReview = async (payload) =>{
         })
         const avgRating = result[0].dataValues.avgRating
         await Product.update(
-            {ratings: Number(avgRating)},
+            {
+                images: prod.images,
+                ratings: Number(avgRating)
+            },
             {where:{id: productId}}
         )
     // update merchant ratings
