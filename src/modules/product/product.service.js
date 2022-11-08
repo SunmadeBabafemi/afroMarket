@@ -5,6 +5,7 @@ const {getPaginatedRecords} = require('../../common/helpers/paginate')
 
 const {
     sequelize,
+    Category,
     Product,
     Inventory
 } = models
@@ -164,7 +165,7 @@ exports.getAllProducts = async (data) =>{
         const allProducts = await getPaginatedRecords(Product, {
             limit: Number(limit),
             page: Number(page),
-            selectedFields: ["id", "name", "images", "description", "ratings", "price"]
+            selectedFields: ["id", "name", "images", "description", "ratings", "price", "category", "CategoryId"]
         })
         if(allProducts.length < 1){
             return {
@@ -302,5 +303,46 @@ exports.getAlllProductsByMerchant = async (data) =>{
             data: null
         }
         
+    }
+}
+
+exports.editAllProducts = async () => {
+    try {
+        const results = []
+       const allProducts = await Product.findAll() 
+       if(allProducts.length < 1) {
+        return {
+            error: false,
+            message: "No product found",
+            data: []
+        }
+       }
+       for(const prod of allProducts){
+            const cat = await Category.findOne({where:{id:prod.CategoryId}})
+            await Product.update(
+                {
+                    images: prod.images,
+                    category: cat.name
+                },
+                {where: {deleted: false}}
+            )
+            const product = await Product.findOne({where:{id: prod.id}})
+            results.push(product)
+       }
+
+       return {
+            error: false,
+            message: "Products retreived successfully",
+            data: results
+       }
+
+
+    } catch (error) {
+        console.log(error)
+        return{
+            error: true,
+            message: error.message|| "Unable to edit product at the moment",
+            data: null
+        }
     }
 }

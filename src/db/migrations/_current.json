@@ -835,6 +835,10 @@
                     "field": "price",
                     "seqType": "Sequelize.INTEGER"
                 },
+                "category": {
+                    "field": "category",
+                    "seqType": "Sequelize.STRING"
+                },
                 "isapproved": {
                     "defaultValue": {
                         "value": true
@@ -1276,5 +1280,5 @@
             "indexes": []
         }
     },
-    "revision": 8
+    "revision": 9
 }

@@ -38,6 +38,9 @@ module.exports = (sequelize, DataTypes) =>{
       price: {
         type: DataTypes.INTEGER
       },
+      category: {
+        type: DataTypes.STRING,
+      },
       isapproved: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,

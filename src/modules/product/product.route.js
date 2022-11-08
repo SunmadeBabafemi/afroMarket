@@ -9,7 +9,8 @@ const {
     getAllProductsController,
     getMyProductsByMerchantController,
     getSingleProductyByAMerchantController,
-    getAllProductsByMerchantController
+    getAllProductsByMerchantController,
+    editAllProductController
 } = require('./product.controller')
 const {
  uploadProductSchema,
@@ -64,6 +65,12 @@ router.post(
     validateRequest(singleProductSchema, "params"),
     authorizeMerchant(),
     removeProductController
+)
+
+
+router.post(
+    '/edit-all',
+    editAllProductController
 )
 
 
