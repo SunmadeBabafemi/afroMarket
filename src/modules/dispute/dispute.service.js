@@ -1,6 +1,6 @@
 const models = require('../../db/models')
 var Sequelize = require('sequelize')
-const imageUploader = require('../../common/helpers/cloudImageUpload')
+const {fileUploader} = require('../../common/helpers/cloudImageUpload')
 const cloudinary = require('../../common/config/cloudinary')
 
 
@@ -13,7 +13,9 @@ const {
 
 exports.createDispute = async (payload) =>{
     try {
-        const {userId, order_id, data} = payload
+        const {userId, order_id, reason, description, image } = payload
+
+
 
         const order = await Order.findOne({
             where:{id: order_id}
@@ -28,20 +30,27 @@ exports.createDispute = async (payload) =>{
 
         const newDispute= await Dispute.create(
             {
-                ...data,
+                reason,
+                description,
                 OrderId: order_id,
                 UserId: userId
             },
             {raw: true}
         )
+        const url = fileUploader(file.path)
+        await Dispute.update(
+            {product_image: url},
+            {where:{id:newDispute.id}}
+        )
         await Order.update(
             {status: "disputed"},
             {where:{id: order_id}}
         )
+        const dispute = await Dispute.findOne({where:{id: newDispute.id}})
         return {
             error: false,
             message: "Dispute created successfully",
-            data: newDispute
+            data: dispute
         }
 
     } catch (error) {

@@ -160,11 +160,22 @@ exports.getSingleProductByAMerchant = async (data) =>{
 exports.getAllProducts = async (data) =>{
     try {
         const {limit, page} = data
+
         const allProducts = await getPaginatedRecords(Product, {
             limit: Number(limit),
             page: Number(page),
-            selectedFields: ["id", "name", "picture", "description", "ratings", "price"]
+            selectedFields: ["id", "name", "images", "description", "ratings", "price"]
         })
+        if(allProducts.length < 1){
+            return {
+            error: false,
+            message: "Product retreived successfully",
+            data: {
+                allProducts: [],
+                pagination: 0
+            }
+        }
+        }
         return {
             error: false,
             message: "Product retreived successfully",
@@ -243,7 +254,7 @@ exports.getMyProductsByMerchant = async (data) =>{
             limit: Number(limit),
             page: Number(page),
             data: {MerchantId: merchant_id},
-            selectedFields: ["id", "name", "picture", "description", "ratings", "price", "deleted"]
+            selectedFields: ["id", "name", "images", "description", "ratings", "price", "deleted"]
         })
         return {
             error: false,

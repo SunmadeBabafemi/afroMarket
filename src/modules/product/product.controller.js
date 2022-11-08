@@ -86,9 +86,9 @@ exports.getSingleProductyByAMerchantController = async (req, res, next) => {
         }
         return createResponse(message, data)(res, HTTP.CREATED);
     } catch (error) {
-        console.error(err);
+        console.error(error);
 
-        return next(createError.InternalServerError(err));
+        return next(createError.InternalServerError(error));
     }
 }
 
@@ -118,9 +118,9 @@ exports.getAllProductsController = async (req, res, next) => {
         }
         return createResponse(message, allData)(res, HTTP.CREATED);
     } catch (error) {
-        console.error(err);
+        console.error(error);
 
-        return next(createError.InternalServerError(err));
+        return next(createError.InternalServerError(error));
     }
 }
 

@@ -167,16 +167,8 @@
                     "field": "name",
                     "seqType": "Sequelize.STRING"
                 },
-                "picture": {
-                    "field": "picture",
-                    "seqType": "Sequelize.STRING"
-                },
-                "picture_2": {
-                    "field": "picture_2",
-                    "seqType": "Sequelize.STRING"
-                },
-                "picture_3": {
-                    "field": "picture_3",
+                "images": {
+                    "field": "images",
                     "seqType": "Sequelize.STRING"
                 },
                 "description": {
@@ -555,16 +547,8 @@
                     "field": "product_name",
                     "seqType": "Sequelize.STRING"
                 },
-                "picture": {
-                    "field": "picture",
-                    "seqType": "Sequelize.STRING"
-                },
-                "picture_2": {
-                    "field": "picture_2",
-                    "seqType": "Sequelize.STRING"
-                },
-                "picture_3": {
-                    "field": "picture_3",
+                "images": {
+                    "field": "images",
                     "seqType": "Sequelize.STRING"
                 },
                 "quantity_ordered": {
@@ -1292,5 +1276,5 @@
             "indexes": []
         }
     },
-    "revision": 5
+    "revision": 8
 }

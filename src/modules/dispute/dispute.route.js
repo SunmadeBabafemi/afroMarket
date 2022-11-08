@@ -18,18 +18,10 @@ const router = Router()
 
 router.post(
     '/create/:id',
-    validateRequest(createDisputeSchema, "body"),
     validateRequest(singleDisputeSchema, "params"),
+    upload.single('image'),
     authorize(),
     createDisputeController
-)
-
-router.patch(
-    '/:id/upload-image',
-    validateRequest(singleDisputeSchema, "params"),
-    authorize(),
-    upload.single("image"),
-    uploadDiputeImageController
 )
 
 router.get(

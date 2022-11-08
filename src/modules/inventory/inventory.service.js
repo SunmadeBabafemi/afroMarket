@@ -42,6 +42,13 @@ exports.addProductToInventory = async (data) =>{
                 data: null
             }
         }
+        if (Number(existingProduct.price) < Number(payload.price)){
+            return {
+                error: true,
+                message: 'Proposed price less than original product price',
+                data: null
+            }
+        }
         const newInventory= await Inventory.create(
             {
                 name: existingProduct.name,

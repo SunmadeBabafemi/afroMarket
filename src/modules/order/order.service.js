@@ -68,7 +68,10 @@ exports.createOrder = async (user, data) =>{
             if(inventory){
                 var stock_left = Number(inventory.quantity_available)-Number(item.quantity_ordered)
                 await Product.update(
-                    {quantity_available: stock_left },
+                    {
+                        images: inventory.images,
+                        quantity_available: stock_left
+                     },
                     {where:{
                             id: inventory.ProductId, 
                             deleted: false
@@ -76,7 +79,10 @@ exports.createOrder = async (user, data) =>{
                     }
                 )
                 await Inventory.update(
-                    {quantity_available: stock_left },
+                    {
+                        images: inventory.images,
+                        quantity_available: stock_left 
+                    },
                     {where:{
                             ProductId: inventory.ProductId, 
                             deleted: false
@@ -88,21 +94,33 @@ exports.createOrder = async (user, data) =>{
                 })
                 if(Number(updatedProduct.quantity_available) === 0){
                    await Inventory.update(
-                        {status: 'out of stock' },
+                        {
+                            images: inventory.images,
+                            status: 'out of stock',
+                        },
                         {where:{ProductId: updatedProduct.id, deleted: false}}
                     ) 
                     await Product.update(
-                        {status: 'out of stock' },
+                        {
+                            images: inventory.images,
+                            status: 'out of stock'
+                         },
                         {where:{id: updatedProduct.id, deleted: false}}
                    )
+                } else {
+                    await Inventory.update(
+                        {
+                            images: inventory.images,
+                            quantity_available: stock_left
+                        },
+                        {where:{ProductId: updatedProduct.id, deleted: false}}
+                    ) 
                 }
                 const resale_cut = (Number(inventory.price) - Number(updatedProduct.price))
                 const ordered_item = await OrderedItem.create({
                     ProductId: updatedProduct.id,
                     product_name: updatedProduct.name,
-                    picture: updatedProduct.picture,
-                    piture_2: updatedProduct.piture_2,
-                    picture_3: updatedProduct.picture_3,
+                    images: updatedProduct.images,
                     quantity_ordered: Number(item.quantity_ordered),
                     price: Number(inventory.price),
                     total: (Number(inventory.price))*(Number(item.quantity_ordered)),
@@ -117,15 +135,22 @@ exports.createOrder = async (user, data) =>{
                 const orderId = ordered_item.id
                 ordered_items_ids.push(orderId)
                 total_price += Number(ordered_item.total)
-            }else if(product){             
+            }else if(product){ 
+                console.log(product);
                 var stock_left = Number(product.quantity_available)-Number(item.quantity_ordered)
                 await Product.update(
-                    {quantity_available: stock_left},
-                    {where:{id: item.id, deleted: false}}
+                    {
+                        quantity_available: stock_left,
+                        images: product.images
+                    },
+                    {where:{id: product.id, deleted: false}}
                 )
                 
                 await Inventory.update(
-                    {quantity_available:stock_left },
+                    {
+                        images: product.images,
+                        quantity_available:stock_left
+                     },
                     {where:{ProductId: product.id, deleted: false}}
                 )
 
@@ -134,17 +159,24 @@ exports.createOrder = async (user, data) =>{
                 })
                 if(Number(updatedProduct.quantity_available) === 0){
                    await Product.update(
-                        {status: 'out of stock' },
+                        {
+                            images: product.images,
+                            status: 'out of stock' 
+                        },
                         {where:{id: product.id, deleted: false}}
                    )
                    await Inventory.update(
-                        {status: 'out of stock' },
+                        {
+                            images: product.images,
+                            status: 'out of stock'
+                         },
                         {where:{ProductId: product.id, deleted: false}}
                    ) 
                 }
                 const ordered_item = await OrderedItem.create({
                     ProductId: product.id,
                     product_name: product.name,
+                    images: product.images,
                     quantity_ordered: Number(item.quantity_ordered),
                     price: Number(product.price),
                     total: (Number(product.price))*(Number(item.quantity_ordered)),

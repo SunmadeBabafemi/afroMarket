@@ -9,7 +9,9 @@ exports.createDisputeController = async (req, res, next) => {
         const {error, message, data} = await DisputeService.createDispute({
             userId: req.userId, 
             order_id: req.params.id,
-            data: req.body
+            reason: req.body.reason,
+            description: req.body.description,
+            image: req.file
         })
 
         if (error) {
