@@ -2,6 +2,7 @@
 const KEYS = require('../../common/config/keys')
 const models = require('../../db/models')
 var Sequelize = require('sequelize')
+const {Op} = Sequelize
 const randomString = require('../../common/helpers/randString')
 const {
     sendOrderDetailstoMail,
@@ -23,6 +24,14 @@ const {
 
 exports.createOrder = async (user, data) =>{
     try {
+
+         if(Boolean(user.isBlocked) === true) {
+            return {
+                error: true,
+                message: "This user has been blocked from accessing this platform",
+                data: null
+            }
+        }
 
         const {order_tray, delivery_address} = data
         let total_price = 0
@@ -293,10 +302,13 @@ exports.cancelOrder = async (user, data) =>{
                 data: null
             }
         }
-        await Order.upsert({
-            id: existingOrder.id,
-            status: "canceled",
-        })
+        await Order.update(
+            {
+                items:existingOrder.items,
+                status: "canceled",
+            },
+            {where:{id: existingOrder.id,}}
+        )
          const canceledOrder = await Order.findOne({
             where:{
                 id: existingOrder.id,
@@ -325,9 +337,18 @@ exports.cancelOrder = async (user, data) =>{
 
 exports.getMyOrders = async (user) =>{
     try {
-        let allMyOrders = {}
+        const activeOrders = []
+        const canceledOrders = []
+        const deliveredOrders = []
+        const disputedOrders = []
+
 
         const myOrders = await Order.findAll({
+            attributes: {exclude:[
+             'items',
+             'TrackerId',
+             'deleted' 
+            ]},
             where:{
                 UserId: user.id,
                 deleted: false
@@ -346,16 +367,28 @@ exports.getMyOrders = async (user) =>{
         }
 
           for(const order of myOrders){
-            const orderId = order.id
-            const ordered_items = await OrderedItem.findAll({where:{OrderId: orderId}})
-            allMyOrders[orderId] = ordered_items
-        }
+            if(String(order.status) === "active"){
+                activeOrders.push(order)
+            }else if(String(order.status) === "canceled") {
+                canceledOrders.push(order)
+            } else if (String(order.status) === "delivered"){
+                deliveredOrders.push(order)
+            } else if (String(order.status) === "disputed") {
+                disputedOrders.push(order)
+            }
+
+          }
         
         
         return {
             error: false,
             message: "Orders Retrieved successfully",
-            data: [myOrders, allMyOrders]
+            data: {
+                active_orders: activeOrders,
+                canceled_orders: canceledOrders,
+                delivered_orders: deliveredOrders,
+                disputed_orders: disputedOrders
+            }
         }
 
     } catch (error) {
@@ -372,6 +405,7 @@ exports.getMyOrders = async (user) =>{
 exports.getSingleOrder = async (user, data) =>{
     try {
         const singleOrder = await Order.findOne({
+            attributes:{exclude:[ 'TrackerId', 'deleted']},
             where:{
                 id: data.id,
                 UserId: user.id
@@ -397,5 +431,67 @@ exports.getSingleOrder = async (user, data) =>{
             data: null
         }
         
+    }
+}
+
+exports.trackMyOrder = async(data) =>{
+    try {
+        const {
+            user_id,
+            tracking_id
+        } = data
+        const upper = String(tracking_id).toUpperCase()
+
+        const foundOrder = await Order.findOne({
+            where:{
+                trackingId : {[Op.like]: `%${upper}%`},
+                UserId: user_id
+            },
+            order: [
+                ['created_at', 'DESC'],
+            ],
+        })
+
+        if(!foundOrder) {
+            return {
+                error: false,
+                message: "No Results for tracking IDs entered",
+                data: null
+            }
+        } else if (String(foundOrder.status) === "canceled"){
+            return {
+                error: false,
+                message: "The resulting order has already been canceled",
+                data: null
+            }
+        }
+
+        const tracker = await Tracker.findOne({
+            where:{trackingId: foundOrder.trackingId}
+        })
+
+        const trackedOrder = {
+            tracking_id: foundOrder.trackingId,
+            order_status: foundOrder.status,
+            total_cost: foundOrder.order_cost,
+            delivery_date: foundOrder.delivery_date,
+            delivery_address: foundOrder.delivery_address,
+            tracking_status: tracker.status,
+            date_created: foundOrder.created_at
+        }
+
+        return {
+            error: false,
+            message: "tracking information retrieved successfully",
+            data: trackedOrder
+        }
+        
+    } catch (error) {
+        console.log(error);
+        return {
+            error: true,
+            message: error.message || "Unable to retrieve tracking information at the moment",
+            data: null
+        }
     }
 }

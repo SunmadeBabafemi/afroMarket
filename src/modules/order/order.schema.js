@@ -13,3 +13,8 @@ exports.cancelOrderSchema = Joi.object().keys({
 exports.singleOrderSchema = Joi.object().keys({
     id: Joi.string().required(),
 })
+
+
+exports.trackOrderSchema = Joi.object().keys({
+    tracking_id: Joi.string().required(),
+})

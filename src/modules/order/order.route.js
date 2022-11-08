@@ -5,12 +5,14 @@ const {
 createOrderController,
 getMyOrdersController,
 cancelOrderController,
-singleOrderController
+singleOrderController,
+trackMyOrderController
 } = require('./order.controller')
 const {
  createOrderSchema,
  cancelOrderSchema,
- singleOrderSchema
+ singleOrderSchema,
+ trackOrderSchema
 } = require('./order.schema')
 
 const router = Router()
@@ -40,6 +42,13 @@ router.get(
     validateRequest(singleOrderSchema, "params"),
     authorize(),
     singleOrderController
+)
+
+router.get(
+    '/track-order',
+    validateRequest(trackOrderSchema, "query"),
+    authorize(),
+    trackMyOrderController
 )
 
 // router.delete(

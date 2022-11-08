@@ -76,8 +76,19 @@ exports.loginUser = async(user, data) => {
         )
         const loginUser = await User.findOne({
             attributes:['email','fullname', 'id', 'refreshTokens'],
-            where: {id:user.id}
+            where: {
+                id:user.id,
+                
+            }
         })
+
+        if(Boolean(loginUser.isBlocked) === true) {
+            return {
+                error: true,
+                message: "This user has been blocked from accessing this platform",
+                data: null
+            }
+        }
 
         return{
             error: false,
