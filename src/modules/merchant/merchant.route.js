@@ -21,9 +21,11 @@ const router = Router()
 router.post(
     '/signup',
     // validateRequest(registerMerchantSchema, "body"),
-    upload.array("doc"),
+    // upload.array("doc"),
+    upload.any(),
     registerMerchantController
 )
+
 router.post(
     '/login',
     validateRequest(loginMerchantSchema, "body"),
