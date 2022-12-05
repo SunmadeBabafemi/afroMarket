@@ -31,6 +31,10 @@ module.exports = (sequelize, DataTypes) =>{
       description: {
         type: DataTypes.STRING,
       },
+      specific_details: {
+        type: DataTypes.JSON,
+        defaultValue: {}
+      },
       quantity_available: {
         type: DataTypes.INTEGER,
         defaultValue: 1

@@ -40,7 +40,7 @@ exports.createOrder = async (user, data) =>{
         const newOrder= await Order.create(
             {   items: '',
                 UserId:user.id,
-                delivery_address: delivery_address,
+                delivery_address: delivery_address? delivery_address: user.delivery_address,
 
             },
             {raw: true}
@@ -251,6 +251,7 @@ exports.createOrder = async (user, data) =>{
             redirect_url: KEYS.flwRedirectUrl,
             email: user.email,
             name: user.fullName,
+            phone_number: user.phone_number,
             order_id: placedOrder.id,
             tracking_id: tracking_id
         }
@@ -359,11 +360,16 @@ exports.getMyOrders = async (user) =>{
         })
 
         if(Number(myOrders.length) < 1 ){
-            return{
-                error: true,
-                message: 'Cannot find any of your orders',
-                data: null
+            return {
+            error: false,
+            message: "Orders Retrieved successfully",
+            data: {
+                active_orders: [],
+                canceled_orders: [],
+                delivered_orders: [],
+                disputed_orders: []
             }
+        }
         }
 
           for(const order of myOrders){

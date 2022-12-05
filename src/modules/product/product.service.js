@@ -17,6 +17,7 @@ exports.uploadProduct = async (payload) =>{
             name,
             description,
             quantity_available,
+            specific_details,
             price,
             category_id,
             files
@@ -30,6 +31,8 @@ exports.uploadProduct = async (payload) =>{
             }
         })
 
+        const category = await Category.findOne({where:{id: category_id}})
+
         if(existingProduct){
             return{
                 error: true,
@@ -41,9 +44,11 @@ exports.uploadProduct = async (payload) =>{
             {
                 name,
                 description,
+                specific_details,
                 quantity_available: Number(quantity_available),
                 price: Number(price),
                 CategoryId: category_id,
+                category: category.name,
                 MerchantId:user.id,           
             },
             {raw: true}
@@ -165,7 +170,7 @@ exports.getAllProducts = async (data) =>{
         const allProducts = await getPaginatedRecords(Product, {
             limit: Number(limit),
             page: Number(page),
-            selectedFields: ["id", "name", "images", "description", "ratings", "price", "category", "CategoryId"]
+            selectedFields: ["id", "name", "images", 'quantity_available', "description", "ratings", "price", "category", "CategoryId"]
         })
         if(allProducts.length < 1){
             return {
@@ -255,7 +260,7 @@ exports.getMyProductsByMerchant = async (data) =>{
             limit: Number(limit),
             page: Number(page),
             data: {MerchantId: merchant_id},
-            selectedFields: ["id", "name", "images", "description", "ratings", "price", "deleted"]
+            selectedFields: ["id", "name", "images", 'quantity_available', "description", "ratings", "price", "category", "CategoryId"]
         })
         return {
             error: false,
@@ -284,7 +289,7 @@ exports.getAlllProductsByMerchant = async (data) =>{
             limit: Number(limit),
             page: Number(page),
             data: {MerchantId: merchant_id},
-            selectedFields: ["id", "name", "images", "description", "ratings", "price", "deleted"]
+            selectedFields: ["id", "name", "images", 'quantity_available', "description", "ratings", "price", "category", "CategoryId"]
         })
         return {
             error: false,

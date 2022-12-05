@@ -28,6 +28,10 @@ module.exports = (sequelize, DataTypes) =>{
       password: {
         type: DataTypes.STRING,
       },
+      avatar:{
+        type: DataTypes.STRING,
+        allowNull: true
+      },
       isVerified: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,

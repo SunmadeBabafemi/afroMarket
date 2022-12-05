@@ -56,6 +56,94 @@ exports.loginUserController = async (req, res, next) => {
     }
 }
 
+exports.viewUserProfileController = async (req, res, next) => {
+    try {
+        const {error, message, data} = await UserService.viewUserProfile(req.user)
+
+        if (error) {
+        return next(
+            createError(HTTP.BAD_REQUEST, [
+            {
+                status: RESPONSE.ERROR,
+                message,
+                statusCode:
+                data instanceof Error ? HTTP.SERVER_ERROR : HTTP.BAD_REQUEST,
+                data,
+            },
+            ])
+        );
+        }
+        return createResponse(message, data)(res, HTTP.CREATED);
+    } catch (error) {
+        console.error(err);
+
+        return next(createError.InternalServerError(err));
+    }
+}
+
+
+exports.updateUserProfileController = async (req, res, next) => {
+    try {
+        const {error, message, data} = await UserService.updateUserProfile({
+            user: req.user,
+            email: req.body.email,
+            fullName: req.body.fullName,
+            phone_number: req.body.phone_number,
+            delivery_address: req.body.delivery_address,
+            file: req.file
+        })
+
+        if (error) {
+        return next(
+            createError(HTTP.BAD_REQUEST, [
+            {
+                status: RESPONSE.ERROR,
+                message,
+                statusCode:
+                data instanceof Error ? HTTP.SERVER_ERROR : HTTP.BAD_REQUEST,
+                data,
+            },
+            ])
+        );
+        }
+        return createResponse(message, data)(res, HTTP.CREATED);
+    } catch (error) {
+        console.error(err);
+
+        return next(createError.InternalServerError(err));
+    }
+}
+
+exports.changePasswordController = async (req, res, next) => {
+    try {
+        const {error, message, data} = await UserService.changePassword({
+            oldPassword: req.body.oldPassword,
+            newPassword: req.body.newPassword,
+            user: req.user
+        })
+
+        if (error) {
+        return next(
+            createError(HTTP.BAD_REQUEST, [
+            {
+                status: RESPONSE.ERROR,
+                message,
+                statusCode:
+                data instanceof Error ? HTTP.SERVER_ERROR : HTTP.BAD_REQUEST,
+                data,
+            },
+            ])
+        );
+        }
+        return createResponse(message, data)(res, HTTP.OK);
+    } catch (error) {
+        console.error(error);
+
+        return next(createError.InternalServerError(error));
+    }
+}
+
+
 exports.logoutUserController = async (req, res, next) => {
     try {
         const {error, message, data} = await UserService.logoutUser(req.token)

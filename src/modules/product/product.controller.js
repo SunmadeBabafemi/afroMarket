@@ -11,6 +11,7 @@ exports.uploadProductController = async (req, res, next) => {
             name: req.body.name,
             description: req.body.description,
             quantity_available: req.body.quantity_available,
+            specific_details: req.body.specific_details,
             price: req.body.price,
             category_id: req.body.category_id,
             files: req.files

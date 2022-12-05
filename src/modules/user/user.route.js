@@ -2,18 +2,23 @@ const {Router} = require('express')
 const { authorizeLogin } = require('../../common/middlewares/authorizeLogin')
 const {authorize} = require('../../common/middlewares/authorize')
 const validateRequest = require('../../common/middlewares/validateRequest')
+const upload = require('../../common/config/multer')
 const { 
  registerUserController,
  loginUserController,
  logoutUserController,
  forgotPasswordController,
- resetPasswordController
+ resetPasswordController,
+ viewUserProfileController,
+ updateUserProfileController,
+ changePasswordController
 } = require('./user.controller')
 const {
  registerUserSchema,
  loginUserSchema,
  forgotPasswordSchema,
- resetPasswordSchema
+ resetPasswordSchema,
+ changePasswordSchema
 } = require('./user.schema')
 
 const router = Router()
@@ -29,10 +34,34 @@ router.post(
     authorizeLogin,
     loginUserController
 )
+
+router.get(
+    '/view-profile',
+    authorize(),
+    viewUserProfileController
+)
+
+router.patch(
+    '/update-profile',
+    authorize(),
+    upload.single("avatar"),
+    updateUserProfileController
+)
+
+
 router.get(
     '/logout',
     authorize(),
     logoutUserController
+)
+
+//PASSWORDS
+
+router.patch(
+    '/pass/change',
+    authorize(),
+    validateRequest(changePasswordSchema, "body"),
+    changePasswordController
 )
 
 router.post(

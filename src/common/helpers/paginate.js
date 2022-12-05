@@ -1,20 +1,11 @@
 exports.getPaginatedRecords = async (
     model,
-    { limit: specifiedLimit = 10, page, data = {}, selectedFields }
+    { limit: specifiedLimit = 10, page, data = {}, selectedFields, exclusions }
   ) => {
     try {
       const limit = Math.min(specifiedLimit, 100); // restrict limit to 100
       const offset = 0 + (page - 1) * limit;
- 
-      const result = await model.findAndCountAll({
-        limit,
-        offset,
-        where: { ...data, deleted: false },
-        order: [
-          ["created_at", "DESC"],
-        ],
-        attributes: selectedFields? selectedFields: [],
-      })
+      let result
       const count = await model.findAll({
         where: { ...data, deleted: false },
         order: [
@@ -22,6 +13,18 @@ exports.getPaginatedRecords = async (
         ],
       })
       const modelData =  count.length
+      if(Number(modelData) > 0){
+        result = await model.findAndCountAll({
+          limit,
+          offset,
+          where: { ...data, deleted: false },
+          order: [
+            ["created_at", "DESC"],
+          ],
+          attributes:  selectedFields?selectedFields:{exclude: exclusions},
+        })
+      }      
+
       return {
         data: result,
         total: modelData,
@@ -37,6 +40,90 @@ exports.getPaginatedRecords = async (
 };
   
 
+exports.paginateSearchResultNoFilter = async (
+    model,
+    { limit: specifiedLimit = 10, page, data = {}, selectedFields }
+  ) => {
+    try {
+      const limit = Math.min(specifiedLimit, 100); // restrict limit to 100
+      const offset = 0 + (page - 1) * limit;
+ 
+      const result = await model.findAndCountAll({
+        limit,
+        offset,
+        where: { ...data, deleted: false },
+       order: [
+          ['ratings', 'ASC']
+        ],
+        attributes: selectedFields? selectedFields: [],
+      })
+      const count = await model.findAll({
+        where: { ...data, deleted: false },
+        order: [
+          ['ratings', 'ASC']
+        ]
+      })
+      const modelData =  count.length
+      return {
+        data: result,
+        total: modelData,
+        currentPage: page,
+        hasNext: page * limit < modelData,
+        hasPrevious: page > 1,
+        perPage: limit,
+        totalPages: Math.ceil(modelData / limit),
+      };
+    } catch (err) {
+      console.log(err);
+    }
+};
+
+
+exports.paginateSearchResultWithFilter = async (
+    model,
+    { limit: specifiedLimit = 10, page, data = {}, selectedFields, exclusions }
+  ) => {
+    try {
+      let result
+      const limit = Math.min(specifiedLimit, 100); // restrict limit to 100
+      const offset = 0 + (page - 1) * limit;
+      const count = await model.findAll({
+        where: { ...data, deleted: false },
+         order: [
+          ["created_at", "DESC"],
+        ],
+      })
+      if(Number(count.length) > 0){
+        result = await model.findAndCountAll({
+          limit,
+          offset,
+          where: { ...data, deleted: false },
+          order: [
+            ["created_at", "DESC"],
+          ],
+          // attributes: selectedFields,
+          attributes: selectedFields?selectedFields:{exclude: exclusions},
+          raw: true
+        })
+      }
+      const altNoResult = {
+        count: 0,
+        rows: []
+      }
+      const modelData =  count.length
+      return {
+        data: (Number(modelData)> 0)?result:altNoResult,
+        total: modelData,
+        currentPage: page,
+        hasNext: page * limit < modelData,
+        hasPrevious: page > 1,
+        perPage: limit,
+        totalPages: Math.ceil(modelData / limit),
+      };
+    } catch (err) {
+      console.log(err);
+    }
+};
 
 
 exports.paginateRaw = async function paginate(array, {limit: specifiedLimit=10, page}) {

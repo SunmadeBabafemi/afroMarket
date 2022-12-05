@@ -835,6 +835,10 @@
                     "field": "price",
                     "seqType": "Sequelize.INTEGER"
                 },
+                "category": {
+                    "field": "category",
+                    "seqType": "Sequelize.STRING"
+                },
                 "isapproved": {
                     "defaultValue": {
                         "value": true
@@ -1129,6 +1133,11 @@
                     "field": "password",
                     "seqType": "Sequelize.STRING"
                 },
+                "avatar": {
+                    "allowNull": true,
+                    "field": "avatar",
+                    "seqType": "Sequelize.STRING"
+                },
                 "isVerified": {
                     "defaultValue": {
                         "value": false
@@ -1276,5 +1285,5 @@
             "indexes": []
         }
     },
-    "revision": 8
+    "revision": 10
 }

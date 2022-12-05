@@ -28,3 +28,9 @@ exports.resetPasswordSchema = Joi.object().keys({
     newPassword: Joi.string().required(),
     otp: Joi.string().required()
 })
+
+exports.changePasswordSchema = Joi.object().keys({
+    oldPassword: Joi.string().required(),
+    newPassword: Joi.string().required(),
+
+})
