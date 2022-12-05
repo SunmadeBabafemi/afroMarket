@@ -4,7 +4,8 @@ const validateRequest = require('../../common/middlewares/validateRequest')
 const { 
 createReviewController,
 productReviewsController,
-deleteReviewsController
+deleteReviewsController,
+merchantReviewsController
 } = require('./review.controller')
 const {
     singleItemSchema,
@@ -28,6 +29,14 @@ router.get(
     validateRequest(singleItemSchema, "params"),
     authorize(),
     productReviewsController
+)
+
+router.get(
+    '/merchant/:id',
+    validateRequest(getProductReviewSchema, "query"),
+    validateRequest(singleItemSchema, "params"),
+    authorize(),
+    merchantReviewsController
 )
 
 router.patch(

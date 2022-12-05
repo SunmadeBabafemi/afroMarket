@@ -824,6 +824,14 @@
                     "field": "description",
                     "seqType": "Sequelize.STRING"
                 },
+                "specific_details": {
+                    "defaultValue": {
+                        "internal": true,
+                        "value": "Sequelize.Object"
+                    },
+                    "field": "specific_details",
+                    "seqType": "Sequelize.JSON"
+                },
                 "quantity_available": {
                     "defaultValue": {
                         "value": 1
@@ -1285,5 +1293,5 @@
             "indexes": []
         }
     },
-    "revision": 10
+    "revision": 11
 }

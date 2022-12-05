@@ -24,9 +24,12 @@ exports.getPaginatedRecords = async (
           attributes:  selectedFields?selectedFields:{exclude: exclusions},
         })
       }      
-
+      const altNoResult = {
+        count: 0,
+        rows: []
+      }
       return {
-        data: result,
+        data: (Number(modelData)> 0)?result:altNoResult,
         total: modelData,
         currentPage: page,
         hasNext: page * limit < modelData,

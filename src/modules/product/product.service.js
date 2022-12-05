@@ -44,7 +44,7 @@ exports.uploadProduct = async (payload) =>{
             {
                 name,
                 description,
-                specific_details,
+                specific_details: specific_details? specific_details: {},
                 quantity_available: Number(quantity_available),
                 price: Number(price),
                 CategoryId: category_id,

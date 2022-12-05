@@ -1,6 +1,6 @@
 const models = require('../../db/models')
 var Sequelize = require('sequelize')
-const {paginateRaw} = require('../../common/helpers/paginate')
+const {paginateRaw, getPaginatedRecords} = require('../../common/helpers/paginate')
 
 const {
     sequelize,
@@ -17,6 +17,7 @@ exports.createReview = async (payload) =>{
         const prod = await Product.findOne({where:{id: productId}})
         const review = await Review.create({
             ...body,
+            merchant_id: prod.MerchantId,
             ProductId: productId,
             UserId: user.id
         })
@@ -71,14 +72,14 @@ exports.createReview = async (payload) =>{
 exports.reviewsOfAProduct = async (body) =>{
     try {
         const {limit, page, id} = body
-        const allreviews = await Review.findAll({
-            attributes:['id', 'text', 'rating', 'ProductId', 'UserId'],
-            where:{ProductId: id, deleted: false}
+
+         const paginatedReviews = await getPaginatedRecords(Review, {
+            limit: limit?Number(limit): 10,
+            page: page? Number(page): 1,
+            selectedFields:['id', 'text', 'rating', 'ProductId', 'UserId', 'merchant_id'],
+            data: {ProductId: id, deleted: false}
         })
-        const paginatedReviews = await paginateRaw(allreviews, {
-            limit: Number(limit),
-            page: Number(page)
-        })
+
         
         return {
             error: false,
@@ -94,6 +95,37 @@ exports.reviewsOfAProduct = async (body) =>{
         return{
             error: true,
             message: error.message|| "Unable to retreive Reviews of this product at the moment",
+            data: null
+        }
+        
+    }
+}
+
+exports.reviewsOfAMerchant = async (body) =>{
+    try {
+        const {limit, page, id} = body
+
+        const paginatedReviews = await getPaginatedRecords(Review, {
+            limit: limit?Number(limit): 10,
+            page: page? Number(page): 1,
+            selectedFields:['id', 'text', 'rating', 'ProductId', 'UserId', 'merchant_id'],
+            data: {merchant_id: id, deleted: false}
+        })
+        
+        return {
+            error: false,
+            message: "Merchant reviews retreived successfully",
+            data: {
+                reviews: paginatedReviews,
+                pagination: paginatedReviews.perPage
+            }
+        }
+
+    } catch (error) {
+        console.log(error)
+        return{
+            error: true,
+            message: error.message|| "Unable to retreive Reviews of this merchant at the moment",
             data: null
         }
         

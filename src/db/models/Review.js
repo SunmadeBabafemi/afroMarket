@@ -22,6 +22,12 @@ module.exports = (sequelize, DataTypes) =>{
         type: DataTypes.INTEGER,
         defaultValue: 3
       },
+      product_owner_id:{
+        type: DataTypes.STRING
+      },
+      merchant_id:{
+        type: DataTypes.STRING
+      },
       deleted:{
         type: DataTypes.BOOLEAN,
         defaultValue: false
