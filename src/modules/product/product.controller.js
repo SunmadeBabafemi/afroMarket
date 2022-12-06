@@ -244,3 +244,39 @@ exports.editAllProductController = async (req, res, next) => {
         return next(createError.InternalServerError(err));
     }
 }
+
+
+exports.updateProductController = async (req, res, next) => {
+    try {
+        const {error, message, data} = await ProductService.updateAProduct({
+            id: req.params.id,
+            user: req.user, 
+            name: req.body.name,
+            description: req.body.description,
+            quantity_available: req.body.quantity_available,
+            specific_details: req.body.specific_details,
+            price: req.body.price,
+            category_id: req.body.category_id,
+            files: req.files
+        })
+
+        if (error) {
+        return next(
+            createError(HTTP.BAD_REQUEST, [
+            {
+                status: RESPONSE.ERROR,
+                message,
+                statusCode:
+                data instanceof Error ? HTTP.SERVER_ERROR : HTTP.BAD_REQUEST,
+                data,
+            },
+            ])
+        );
+        }
+        return createResponse(message, data)(res, HTTP.CREATED);
+    } catch (error) {
+        console.error(error);
+
+        return next(createError.InternalServerError(error));
+    }
+}

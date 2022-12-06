@@ -351,3 +351,77 @@ exports.editAllProducts = async () => {
         }
     }
 }
+
+exports.updateAProduct = async (payload) =>{
+    try {
+        const {
+            id,
+            user,
+            name,
+            description,
+            quantity_available,
+            specific_details,
+            price,
+            category_id,
+            files
+        } = payload
+        const imageArray = []
+        var category
+        const existingProduct = await Product.findOne({
+            where:{
+                MerchantId: user.id,
+                id: id,
+                deleted: false
+            }
+        })
+        if (category_id !== (null|| undefined)){
+            category = await Category.findOne({where:{id: category_id}})
+        }
+
+        if(!existingProduct){
+            return{
+                error: true,
+                message: 'Product Not Found',
+                data: null
+            }
+        }
+
+        if(files.length > 0){
+            for(const file of files){
+                const {path} = file
+                const url = await fileUploader(path)
+                imageArray.push(url)
+            }
+        }
+        await Product.update(
+            {
+                name: name? name: existingProduct.name,
+                description: description? description: existingProduct.description,
+                images: (files.length>0)? imageArray: existingProduct.images,
+                specific_details: specific_details? specific_details: existingProduct.specific_details,
+                quantity_available:quantity_available? Number(quantity_available): existingProduct.quantity_available,
+                price: price?Number(price): existingProduct.price,
+                CategoryId: category? category.id: existingProduct.CategoryId,
+                category:category? category.name: existingProduct.category,
+            },
+            {where:{id:existingProduct.id}}
+        )
+               
+       
+        const updatedProduct = await Product.findOne({where:{id: existingProduct.id}})
+        return {
+            error: false,
+            message: "Product updated successfully",
+            data: updatedProduct
+        }
+
+    } catch (error) {
+        console.log(error)
+        return{
+            error: true,
+            message: error.message|| "Unable to update product at the moment",
+            data: null
+        }
+        
+    }
+}
