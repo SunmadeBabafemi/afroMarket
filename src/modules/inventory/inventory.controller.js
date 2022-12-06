@@ -68,10 +68,6 @@ exports.getAllProductsFromMyInventoryController = async (req, res, next) => {
             limit: req.query.limit,
             page: req.query.page, 
         })
-        const allData = {
-            pagination: data.pagination,
-            products: data.allInventories
-        }
         if (error) {
         return next(
             createError(HTTP.BAD_REQUEST, [
@@ -85,7 +81,7 @@ exports.getAllProductsFromMyInventoryController = async (req, res, next) => {
             ])
         );
         }
-        return createResponse(message, allData)(res, HTTP.CREATED);
+        return createResponse(message, data)(res, HTTP.CREATED);
     } catch (error) {
         console.error(error);
 

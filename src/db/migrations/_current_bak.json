@@ -962,6 +962,65 @@
             },
             "indexes": []
         },
+        "Rates": {
+            "tableName": "Rates",
+            "schema": {
+                "id": {
+                    "primaryKey": true,
+                    "unique": true,
+                    "defaultValue": {
+                        "internal": true,
+                        "value": "Sequelize.UUIDV4"
+                    },
+                    "field": "id",
+                    "seqType": "Sequelize.UUID"
+                },
+                "country": {
+                    "field": "country",
+                    "seqType": "Sequelize.STRING"
+                },
+                "state": {
+                    "unique": true,
+                    "field": "state",
+                    "seqType": "Sequelize.STRING"
+                },
+                "region": {
+                    "allowNull": true,
+                    "field": "region",
+                    "seqType": "Sequelize.STRING"
+                },
+                "price": {
+                    "defaultValue": {
+                        "value": 1
+                    },
+                    "field": "price",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "currency": {
+                    "allowNull": true,
+                    "field": "currency",
+                    "seqType": "Sequelize.STRING"
+                },
+                "deleted": {
+                    "defaultValue": {
+                        "value": false
+                    },
+                    "field": "deleted",
+                    "seqType": "Sequelize.BOOLEAN"
+                },
+                "created_at": {
+                    "allowNull": false,
+                    "field": "created_at",
+                    "seqType": "Sequelize.DATE"
+                },
+                "updated_at": {
+                    "allowNull": false,
+                    "field": "updated_at",
+                    "seqType": "Sequelize.DATE"
+                }
+            },
+            "indexes": []
+        },
         "Reviews": {
             "tableName": "Reviews",
             "schema": {
@@ -1356,5 +1415,5 @@
             "indexes": []
         }
     },
-    "revision": 12
+    "revision": 13
 }

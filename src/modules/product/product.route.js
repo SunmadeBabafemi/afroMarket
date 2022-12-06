@@ -14,7 +14,6 @@ const {
     updateProductController
 } = require('./product.controller')
 const {
- uploadProductSchema,
  singleProductSchema,
  getAllProductSchema
 } = require('./product.schema')
@@ -24,7 +23,6 @@ const router = Router()
 router.post(
     '/upload',
     upload.array("image"),
-    // validateRequest(uploadProductSchema, "body"),
     authorizeMerchant(),
     uploadProductController
 )

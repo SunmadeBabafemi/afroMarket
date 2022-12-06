@@ -148,7 +148,7 @@ exports.getSingleProductByAMerchant = async (data) =>{
         return {
             error: false,
             message: "Product retreived successfully",
-            data: [existingProduct, allInventoriesOfAProduct]
+            data: {existingProduct, allInventoriesOfAProduct}
         }
 
     } catch (error) {

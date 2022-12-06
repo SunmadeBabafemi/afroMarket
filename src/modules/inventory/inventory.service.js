@@ -13,17 +13,17 @@ exports.addProductToInventory = async (data) =>{
     try {
         const {merchant_id, product_id, payload} = data
         const existingProduct = await Product.findOne({
-             attributes: ['id', 'name', 'picture', 'picture_2', 'picture_3', 'description', 'quantity_available', 'price', 'isApproved', 'ratings', 'MerchantId', 'CategoryId', ],
             where:{
-                id: product_id
+                id: product_id,
+                deleted: false
             },
         })
-        console.log(existingProduct);
         const existingInventory = await Inventory.findOne({
             where:{
                 inventory_owner: merchant_id,
                 MerchantId: existingProduct.MerchantId,
-                name: existingProduct.name
+                name: existingProduct.name,
+                deleted: false
             }
         })
 
@@ -42,7 +42,7 @@ exports.addProductToInventory = async (data) =>{
                 data: null
             }
         }
-        if (Number(existingProduct.price) < Number(payload.price)){
+        if (Number(existingProduct.price) > Number(payload.price)){
             return {
                 error: true,
                 message: 'Proposed price less than original product price',
@@ -53,10 +53,9 @@ exports.addProductToInventory = async (data) =>{
             {
                 name: existingProduct.name,
                 ProductId: existingProduct.id,
-                picture: existingProduct.picture,
-                picture_2: existingProduct.picture_2,
-                picture_3: existingProduct.picture_3,
                 description: existingProduct.description,
+                specific_details: existingProduct.specific_details,
+                images:'',
                 quantity_available: existingProduct.quantity_available,
                 price: payload.price,
                 isApproved: existingProduct.isApproved,
@@ -68,10 +67,16 @@ exports.addProductToInventory = async (data) =>{
             },
             {raw: true}
         )
+        await Inventory.update(
+            {images: existingProduct.images},
+            {where:{id:newInventory.id}}
+
+        )
+        const update = await Inventory.findOne({where: {id: newInventory.id}})
         return {
             error: false,
             message: "Product added to inventory successfully",
-            data: newInventory
+            data: update
         }
 
     } catch (error) {
@@ -96,7 +101,6 @@ exports.singleInventoryItem = async (payload) =>{
                 inventory_owner,
                 deleted: false
             },
-            // attributes:["id", "name", "picture", "description", "ratings", "price", "MerchantId"]
         })
 
 
@@ -146,7 +150,7 @@ exports.removeProductFromInventory = async (payload) =>{
             }
         } 
         await Inventory.update(
-            {deleted: true},
+            {deleted: true, images: existingInventory.images},
             {
             where:{
                 id: inventory_id,
@@ -175,10 +179,10 @@ exports.allMyInventories = async (payload) =>{
     const {inventory_owner, limit, page} = payload
     try {
          const myInventories = await getPaginatedRecords(Inventory, {
-            limit: Number(limit),
-            page: Number(page),
+            limit: limit? Number(limit):10,
+            page:page? Number(page):1,
             data: {inventory_owner},
-            selectedFields: ["id", "name", "picture", "description", "ratings", "price", "MerchantId"]
+            selectedFields: ["id", "name", "images", "description", "ratings", "price", "MerchantId"]
 
         })
 
