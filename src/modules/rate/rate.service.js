@@ -104,7 +104,7 @@ exports.getAllRateCards = async (body) =>{
         
         return {
             error: false,
-            message: "Merchant reviews retreived successfully",
+            message: "Merchant rate cards retreived successfully",
             data: {
                 rates: paginatedRates,
                 pagination: paginatedRates.perPage
