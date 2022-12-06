@@ -17,6 +17,8 @@ const adminHomePage = require('./admin/home/admin-home.route')
 const flwPayment = require('./flw-payment/flw.route')
 const withdrawal = require('./withdrawal/withdrawal.route')
 const customers = require('./customer/customer.route')
+const rates = require('./rate/rate.route')
+
 
 
 
@@ -37,6 +39,8 @@ module.exports = () => {
   router.use('/payment', flwPayment)
   router.use('/withdrawal', withdrawal)
   router.use('/customer', customers)
+  router.use('/rate-card', rates)
+
 
 
   //Admin routes

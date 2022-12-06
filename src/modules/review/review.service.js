@@ -72,6 +72,10 @@ exports.createReview = async (payload) =>{
 exports.reviewsOfAProduct = async (body) =>{
     try {
         const {limit, page, id} = body
+        const allreviews = await Review.findAll({
+            attributes:['id', 'text', 'rating', 'ProductId', 'UserId'],
+            where:{ProductId: id, deleted: false}
+        })
 
          const paginatedReviews = await getPaginatedRecords(Review, {
             limit: limit?Number(limit): 10,
