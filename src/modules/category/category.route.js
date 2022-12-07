@@ -26,8 +26,8 @@ router.post(
 )
 
 router.get(
-    '/one/:id',
-    authorizeAdmin,
+    '/view/:id',
+    // authorizeAdmin,
      validateRequest(singleProductSchema, "params"),
     getACategoryController
 
@@ -40,7 +40,7 @@ router.get(
 
 )
 router.get(
-    '/one/:id',
+    '/categorised_products/:id',
     validateRequest(singleProductSchema, "params"),
     getAllProductsInACategoryController
 

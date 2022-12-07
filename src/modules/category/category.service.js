@@ -1,7 +1,7 @@
 const models = require('../../db/models')
 var Sequelize = require('sequelize')
 const imageUploader = require('../../common/helpers/cloudImageUpload')
-const {getPaginatedRecords, paginateRaw} = require('../../common/helpers/paginate')
+const {getPaginatedRecords, paginateRaw, getPaginatedRecordsForMultipleModels} = require('../../common/helpers/paginate')
 const {searchModel} = require('../../common/helpers/search')
 
 const {
@@ -143,44 +143,76 @@ exports.uploadProductImages = async(payload)=>{
 
 }
 
+// exports.getAllProductsInACategory = async (data) =>{
+//     try {
+//         const {limit, page, category_id} = data
+//         let allResults = []
+//         const inventories = await Inventory.findAll({
+//             where:{CategoryId: category_id},
+//             order: [
+//              ["created_at", "DESC"],
+//             ],
+//         })
+
+//         const products = await Product.findAll({
+//             where:{CategoryId: category_id},
+//             order: [
+//              ["created_at", "DESC"],
+//             ],
+//         })
+//         for(const item of products){
+//             allResults.push(item)
+//         }
+//         for(const item of inventories){
+//             allResults.push(item)
+//         }
+//         const arranged = allResults.sort(function(a, b) {
+//             var keyA = new Date(a.updated_at),
+//                 keyB = new Date(b.updated_at);
+//             // Compare the 2 dates
+//             if (keyA < keyB) return -1;
+//             if (keyA > keyB) return 1;
+//             return 0;
+//         })
+//         const display = await paginateRaw(arranged,{limit, page})
+//         return{
+//             error: false,
+//             message: "Product retreived successfully",
+//             data: {
+//                 allProducts: display,
+//                 // pagination: allResults.perPage
+//             }
+//         }
+
+//     } catch (error) {
+//         console.log(error)
+//         return{
+//             error: true,
+//             message: error.message|| "Unable to retreive products under this category at the moment",
+//             data: null
+//         }
+        
+//     }
+// }
+
 exports.getAllProductsInACategory = async (data) =>{
     try {
         const {limit, page, category_id} = data
-        let allResults = []
-        const inventories = await Inventory.findAll({
-            where:{CategoryId: category_id},
-            order: [
-             ["created_at", "DESC"],
-            ],
-        })
-
-        const products = await Product.findAll({
-            where:{CategoryId: category_id},
-            order: [
-             ["created_at", "DESC"],
-            ],
-        })
-        for(const item of products){
-            allResults.push(item)
-        }
-        for(const item of inventories){
-            allResults.push(item)
-        }
-        const arranged = allResults.sort(function(a, b) {
-            var keyA = new Date(a.updated_at),
-                keyB = new Date(b.updated_at);
-            // Compare the 2 dates
-            if (keyA < keyB) return -1;
-            if (keyA > keyB) return 1;
-            return 0;
-        })
-        const display = await paginateRaw(arranged,{limit, page})
+        const categorisedProducts = await getPaginatedRecordsForMultipleModels(
+            Product, Inventory,
+            {
+                limit: limit? Number(limit):10 , 
+                page: page?Number(page):1, 
+                data: {CategoryId: category_id},
+                exclusions: ["updated_at"]
+            }
+        )
         return{
             error: false,
             message: "Product retreived successfully",
             data: {
-                allProducts: display,
-                // pagination: allResults.perPage
+                allProducts: categorisedProducts,
+                pagination: categorisedProducts.perPage
             }
         }
 
@@ -194,7 +226,6 @@ exports.getAllProductsInACategory = async (data) =>{
         
     }
 }
-
 
 exports.searchCategory = async (data) =>{
     try {

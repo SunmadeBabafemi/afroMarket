@@ -168,3 +168,123 @@ exports.paginateRaw = async function paginate(array, {limit: specifiedLimit=10, 
     next: next_page
   }
 }
+
+exports.getPaginatedRecordsForMultipleModels = async (
+    firstModel,secondModel,
+    { limit: specifiedLimit = 10, page, data = {}, selectedFields, exclusions }
+  ) => {
+    try {
+      const limit = Math.min(specifiedLimit, 100); // restrict limit to 100
+      const offset = 0 + (page - 1) * limit;
+      let firstResult
+      let secondResult
+      let result
+      const firstCount = await firstModel.findAll({
+        where: { ...data, deleted: false },
+        order: [
+          ["created_at", "DESC"],
+        ],
+      })
+
+      const secondCount = await secondModel.findAll({
+        where: { ...data, deleted: false },
+        order: [
+          ["created_at", "DESC"],
+        ],
+      })
+
+      const firstTotal =  firstCount.length
+      const secondTotal = secondCount.length
+
+      if(Number(firstTotal) > 0){
+        firstResult = await firstModel.findAndCountAll({
+          limit: Math.ceil(limit/2),
+          offset,
+          where: { ...data, deleted: false },
+          order: [
+            ["ratings", "DESC"],
+          ],
+          attributes:  selectedFields?selectedFields:{exclude: exclusions},
+        })
+      }  
+      
+      if(Number(secondTotal) > 0){
+        secondResult = await secondModel.findAndCountAll({
+          limit: Math.ceil(limit/2),
+          offset,
+          where: { ...data, deleted: false },
+          order: [
+            ["ratings", "DESC"],
+          ],
+          attributes:  selectedFields?selectedFields:{exclude: exclusions},
+        })
+      } 
+      const firstRow = firstResult.rows
+      const secondRow = secondResult.rows
+      var array = []
+      let i = 0
+      // while(i < (Number(firstTotal + secondTotal))){
+      //   if((firstRow[i] !== undefined  ) 
+      //       && (secondRow[i] !== undefined )
+      //     ){
+      //     array.push(firstRow[i], secondRow[i])
+      //     console.log('BOTH EXISTS>>>',`POSTION${i}`,firstRow[i], secondRow[i] );
+      //     i++
+      //   } else if((firstRow[i] === undefined) 
+      //     && (secondRow[i] !== undefined)){
+      //     array.push(secondRow[i])
+      //     console.log('SECOND EXISTS>>>',`POSTION${i}`, secondRow[i] );
+
+      //      i++
+          
+      //   } else if ((firstRow[i] !== undefined)
+      //      && (secondRow[i] === undefined)
+      //   ){
+      //     array.push(firstRow[i])
+      //     console.log('FIRST EXISTS>>>',`POSTION${i}`,firstRow[i]);
+      //     i++
+      //   }
+      // }
+
+      // while(i < (Number(firstTotal + secondTotal))){
+      //   if((firstRow[i]) 
+      //       && (secondRow[i])
+      //     ){
+      //     array.push(firstRow[i], secondRow[i])
+      //        i += 2
+      //   }  if(!(firstRow[i]) 
+      //     && (secondRow[i])){
+      //     array.push(secondRow[i])
+      //      i ++
+      //   }  if ((firstRow[i])
+      //      && !(secondRow[i])
+      //   ){
+      //     array.push(firstRow[i])
+      //      i ++
+      //   }
+       
+      // }
+      // array.push(...firstResult.rows, ...secondResult.rows)
+      const altNoResult = {
+        count: 0,
+        rows: []
+      }
+      result ={
+        count: (firstTotal + secondTotal),
+        rows: array
+      }
+      return {
+        data: (Number(firstTotal + secondTotal)> 0)?result:altNoResult,
+        total: (firstTotal + secondTotal),
+        currentPage: page,
+        hasNext: page * limit < (firstTotal + secondTotal),
+        hasPrevious: page > 1,
+        perPage: limit,
+        totalPages: Math.ceil(Number(firstTotal + secondTotal) / limit),
+        //  totalPages: Math.ceil(modelData / limit),
+      };
+    } catch (err) {
+      console.log(err);
+    }
+};
+  

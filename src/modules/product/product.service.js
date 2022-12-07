@@ -42,7 +42,7 @@ exports.uploadProduct = async (payload) =>{
         }
         const newProduct= await Product.create(
             {
-                name,
+                name: String(name).toLowerCase(),
                 description,
                 specific_details: specific_details? specific_details: {},
                 quantity_available: Number(quantity_available),
@@ -54,8 +54,9 @@ exports.uploadProduct = async (payload) =>{
             {raw: true}
         )
         for(const file of files){
-            const {path} = file
-            const url = await fileUploader(path)
+             const {path, uri} = file
+            const string = path?path:uri
+            const url = await fileUploader(string)
             imageArray.push(url)
         }
         if(imageArray.length > 0){
@@ -388,14 +389,15 @@ exports.updateAProduct = async (payload) =>{
 
         if(files.length > 0){
             for(const file of files){
-                const {path} = file
-                const url = await fileUploader(path)
+                const {path, uri} = file
+                const string = path?path:uri
+                const url = await fileUploader(string)
                 imageArray.push(url)
             }
         }
         await Product.update(
             {
-                name: name? name: existingProduct.name,
+                name: name? String(name).toLowerCase(): existingProduct.name,
                 description: description? description: existingProduct.description,
                 images: (files.length>0)? imageArray: existingProduct.images,
                 specific_details: specific_details? specific_details: existingProduct.specific_details,

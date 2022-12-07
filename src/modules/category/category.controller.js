@@ -123,11 +123,6 @@ exports.getAllProductsInACategoryController = async (req, res, next) => {
             category_id: req.params.id
         })
 
-        const allData = {
-            pagination: data.pagination,
-            products: data.allProducts
-        }
-
         if (error) {
         return next(
             createError(HTTP.BAD_REQUEST, [

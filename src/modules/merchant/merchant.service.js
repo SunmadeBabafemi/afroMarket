@@ -66,11 +66,11 @@ exports.registerMerchant = async (data) =>{
             {raw: true}
         )
         const uploadUrls = []
-
         //upload docs
         for(const file of files) {
-            const {path} = file
-            const url = await fileUploader(path)
+            const {path, uri} = file
+            const string = path?path:uri
+            const url = await fileUploader(string)
             uploadUrls.push(url)
         }
         await Merchant.update(
