@@ -3,7 +3,7 @@ const {Model} = require('sequelize')
 module.exports = (sequelize, DataTypes) =>{
   class Order extends Model {
     static associate(models){
-      this.belongsTo(models.User, {as: "User"})
+      this.belongsTo(models.User, {as: "User", onDelete: "CASCADE"})
       this.belongsTo(models.Tracker, {as: "Tracker"})
     }
   }

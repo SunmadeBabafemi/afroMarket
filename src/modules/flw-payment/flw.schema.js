@@ -21,3 +21,7 @@ exports.confirmPayMentSchema = Joi.object().keys({
 exports.singleModelSchema = Joi.object().keys({
     id: Joi.string().required(),
 })
+
+exports.fundWalletSchema = Joi.object().keys({
+    amount: Joi.number().required(),
+})

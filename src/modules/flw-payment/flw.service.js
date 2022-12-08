@@ -17,7 +17,8 @@ const {
     Merchant,
     Tracker,
     Transaction,
-    Withdrawal
+    Wallet,
+    Withdrawal,
 } = models
 
 
@@ -470,3 +471,152 @@ exports.fetchRetryWithdrawal = async (data) =>{
         }
     }
 }
+
+
+exports.fundWallet = async (payload) => {
+    try {
+        
+        const {
+            user,
+            amount,
+
+        } = payload
+        const tx_ref =  uuid()
+        const userWallet = await Wallet.findOne({where:{UserId: user.id}})
+        const Data = {
+                tx_ref: tx_ref,
+                amount,
+                currency: 'NGN',
+                redirect_url: KEYS.flwRedirectUrl,
+                customer: {
+                    email: user.email,
+                    phonenumber: user.phone_number,
+                    name: user?.fullName? user.fullName: null,
+                    wallet_id: userWallet.id,
+                }
+            }
+
+        const {status, statusText, data} = await axios.post(
+            KEYS.flwPaymentUrl,
+            Data,
+            {
+                headers: {
+                    Authorization: `Bearer ${KEYS.flwSecKey}`
+                }
+            },
+            
+        )
+        if (status >= 400){
+            return {
+                error: true,
+                message: statusText,
+                data: data
+            }
+
+        }
+        console.log(Transaction);
+
+        const transaction = await Transaction.create(
+            {
+                tx_ref: tx_ref,
+                amount: amount,
+                wallet_id: userWallet.id,
+                previous_balance: userWallet.available_balance,
+                new_balance: userWallet.available_balance,
+                email: user.email,
+                type: 'walletTopUp',
+                UserId: user.id
+            },
+            {raw: true}
+        )
+
+        return{
+            error: false,
+            message: data.message,
+            data: {
+                data,
+                transaction
+            }
+        }
+
+    } catch (error) {
+        console.log(error);
+        return{
+            error: true,
+            message: error.message|| "Unable to make payment at the moment",
+            data: null  
+        }
+    }
+    
+} 
+
+
+exports.confirmWalletTopup = async (paymentResponse) => {
+    try {
+        
+        const {
+            user,
+            status,
+            tx_ref,
+            flw_transaction_id
+        } = paymentResponse
+
+        const userWallet = await Wallet.findOne({where:{UserId: user.id}})
+
+        const pendingTransaction = await Transaction.findOne({where:{tx_ref: tx_ref, UserId: user.id, wallet_id: userWallet.id }}) 
+        if(!pendingTransaction){
+            return {
+                error: true,
+                message: "Ongoing Transaction Not Found"
+            }
+        }
+         await Transaction.update(
+            {   
+                flw_transaction_id: flw_transaction_id,
+                status: status,
+            },
+            {where:{tx_ref: tx_ref, UserId: user.id}}
+        )
+        
+
+        //If successful, update the wallet and transaction tracker
+        if(status === "successful"){
+            await Transaction.update(
+                {   
+                    new_balance: Number(userWallet.available_balance) + Number(pendingTransaction.amount),
+                },
+                {where:{tx_ref: tx_ref, UserId: user.id}}
+            )
+            await Wallet.update(
+                {
+                   previous_balance: userWallet.available_balance,
+                   available_balance: userWallet.available_balance + pendingTransaction.amount
+                },
+                {where:{UserId: user.id}}
+            )
+        }
+        const completedTransaction = await Transaction.findOne(
+            {where:{tx_ref: tx_ref, UserId: user.id}}
+        )
+
+       const updateUserdWallet = await Wallet.findOne({where:{UserId: user.id}})
+
+        return{
+            error: false,
+            message: `wallet TopUp ${status}`,
+            data: {
+                completedTransaction,
+                updateUserdWallet
+            }
+        }
+
+    } catch (error) {
+        console.log(error);
+        return{
+            error: true,
+            message: error.message|| "Unable to make payment at the moment",
+            data: null  
+        }
+    }
+    
+} 

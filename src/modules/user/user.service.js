@@ -6,6 +6,7 @@ const { fileUploader } = require('../../common/helpers/cloudImageUpload')
 const {
     sequelize,
     User,
+    Wallet
 } = models
 
 exports.registerUser = async (data) =>{
@@ -35,11 +36,25 @@ exports.registerUser = async (data) =>{
             },
             {raw: true}
         )
-
+        const userWallet = await Wallet.create({
+            UserId: newUser.id
+        })
+        const userData = {
+            id : newUser.id,
+            isVerified: newUser.isVerified,
+            isBlocked: newUser.isBlocked,
+            deleted: newUser.deleted,
+            fullName: newUser.fullName,
+            email: newUser.email,
+            password: newUser.password,
+            updated_at: newUser.updated_at,
+            created_at: newUser.created_at,
+            userWallet: userWallet
+        }
         return {
             error: false,
             message: "User registered successfully",
-            data: newUser
+            data: userData
         }
 
     } catch (error) {
@@ -69,6 +84,8 @@ exports.loginUser = async(user, data) => {
                 message: "Invalid Authorization",
             };
         }
+        let userWallet
+        userWallet = await Wallet.findOne({where: {UserId: user.id, deleted: false}})
 
         const refreshToken = jwtSign(user.id)
         await User.update(
@@ -83,6 +100,7 @@ exports.loginUser = async(user, data) => {
             }
         })
 
+
         if(Boolean(loginUser.isBlocked) === true) {
             return {
                 error: true,
@@ -94,7 +112,7 @@ exports.loginUser = async(user, data) => {
         return{
             error: false,
             message: 'Login successful',
-            data: {loginUser, accesstoken: refreshToken}
+            data: {loginUser, accesstoken: refreshToken, userWallet}
         }
 
     } catch (error) {

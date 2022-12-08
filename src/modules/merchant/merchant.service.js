@@ -73,6 +73,9 @@ exports.registerMerchant = async (data) =>{
             const url = await fileUploader(string)
             uploadUrls.push(url)
         }
+
+        console.log(files[0]);
+
         await Merchant.update(
             {
                 cac_document: uploadUrls[0],

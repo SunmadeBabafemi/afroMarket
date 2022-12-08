@@ -7,12 +7,15 @@ confirmInboundPaymentController,
 makeMerchantWithdrawalController,
 fetchtWithdrawalController,
 retryMerchantWithdrawalController,
-retryFetchtWithdrawalController
+retryFetchtWithdrawalController,
+fundWalletController,
+confirmWalletTopupController
 } = require('./flw.controller')
 const {
     createPayMentSchema,
     confirmPayMentSchema,
     singleModelSchema,
+    fundWalletSchema,
 } = require('./flw.schema')
 
 const router = Router()
@@ -56,6 +59,21 @@ router.get(
     validateRequest(singleModelSchema, "params"),
     authorize(),
    retryFetchtWithdrawalController
+)
+
+//WALLET TRANSACTIONS
+router.post(
+    '/initiate-top-up',
+    validateRequest(fundWalletSchema, "body"),
+    authorize(),
+    fundWalletController
+)
+
+router.get(
+    '/confirm-top-up',
+    validateRequest(confirmPayMentSchema, "query"),
+    authorize(),
+    confirmWalletTopupController
 )
 
 

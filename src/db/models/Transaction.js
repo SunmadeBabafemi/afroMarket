@@ -27,12 +27,21 @@ module.exports = (sequelize, DataTypes) =>{
       order_id: {
         type: DataTypes.STRING,
       },
+      wallet_id: {
+        type: DataTypes.STRING,
+      },
+      previous_balance: {
+        type: DataTypes.FLOAT,
+      }, 
+      new_balance: {
+        type: DataTypes.FLOAT,
+      },
       email: {
         type: DataTypes.STRING,
       },
       type: {
         type: DataTypes.ENUM,
-        values:['inbound', 'outbound'],
+        values:['inbound', 'outbound', 'walletTopUp', 'walletDebit'],
       },
       status: {
         type: DataTypes.ENUM,
