@@ -2,6 +2,7 @@ const models = require('../../db/models')
 var Sequelize = require('sequelize')
 const {fileUploader} = require('../../common/helpers/cloudImageUpload')
 const {getPaginatedRecords} = require('../../common/helpers/paginate')
+var uri2path = require('file-uri-to-path');
 
 const {
     sequelize,
@@ -55,7 +56,7 @@ exports.uploadProduct = async (payload) =>{
         )
         for(const file of files){
              const {path, uri} = file
-            const string = path?path:uri
+             const string = path?path: await uri2path(uri)
             const url = await fileUploader(string)
             imageArray.push(url)
         }

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "backend of afroMarket",
   "main": "index.js",
- "scripts": {
+  "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "start:dev": "cross-env NODE_ENV=development nodemon index.js",
@@ -27,7 +27,7 @@
     "url": "https://github.com/SunmadeBabafemi/afroMarket/issues"
   },
   "homepage": "https://github.com/SunmadeBabafemi/afroMarket#readme",
-   "dependencies": {
+  "dependencies": {
     "@joi/date": "^2.1.0",
     "axios": "^1.1.2",
     "bcryptjs": "^2.4.3",
@@ -41,6 +41,7 @@
     "email-validator": "^2.0.4",
     "express": "^4.18.1",
     "express-sslify": "^1.2.0",
+    "file-uri-to-path": "^2.0.0",
     "flutterwave-node-v3": "^1.0.11",
     "fs": "^0.0.1-security",
     "helmet": "^6.0.0",
@@ -58,8 +59,8 @@
     "nodemon": "^2.0.20",
     "path": "^0.12.7",
     "reflect-metadata": "^0.1.13",
-    "sequelize-auto-migrations-v2": "^1.2.1",
     "sequelize": "^6.23.0",
+    "sequelize-auto-migrations-v2": "^1.2.1",
     "sequelize-cli": "^6.4.1",
     "typeorm": "^0.3.9",
     "uuid4": "^2.0.3",
